@@ -1,0 +1,8 @@
+# Excel
+*.cls
+*~$*
+*.xls*
+
+# VBA extract settings
+*.ini
+*.bin
