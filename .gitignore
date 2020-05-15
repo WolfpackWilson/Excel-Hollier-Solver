@@ -1,5 +1,6 @@
 # Excel
-*.cls
+Sheet1.cls
+ThisWorkbook.cls
 *~$*
 *.xls*
 
