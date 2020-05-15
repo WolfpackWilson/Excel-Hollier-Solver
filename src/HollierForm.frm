@@ -24,10 +24,21 @@ Public OutputCell As Range
 Private Sub CommandButton1_Click()
 If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
     If (OptionButton1.Value = True And getRange(RefEdit2.Text, OutputCell) And Not (OutputCell Is Nothing)) Then
-        Set OutputCell = OutputCell.Cells(1, 1)
-        Me.Hide
-        Main.HollierMethod
-        Unload Me
+        Dim arr1Length, arr2Length As Integer
+        Dim arrRange() As Variant
+        
+        arrRange = InputRange
+        arr1Length = UBound(arrRange, 1) - LBound(arrRange, 1)
+        arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
+        
+        If (arr1Length = arr2Length) Then
+            Set OutputCell = OutputCell.Cells(1, 1)
+            Me.Hide
+            Main.HollierMethod
+            Unload Me
+        Else
+            MsgBox ("Please make sure your input has the same number of rows and columns.")
+        End If
     ElseIf (OptionButton2.Value = True) Then
         Sheets.Add.Name = "Hollier Output"
         Set OutputCell = Range("A1")
