@@ -1,5 +1,4 @@
 Attribute VB_Name = "Main"
-Option Explicit
 
 ' begin program
 Sub Main()
@@ -8,5 +7,6 @@ End Sub
 
 ' begin solving for Hollier
 Sub HollierMethod()
-MsgBox ("We're here now")
+Dim Solver As Variant
+Set Solver = New HollierSolver
 End Sub
