@@ -7,6 +7,14 @@ End Sub
 
 ' begin solving for Hollier
 Sub HollierMethod()
-Dim Solver As Variant
+Dim Solver As HollierSolver
+Dim tableRange As Range
+
 Set Solver = New HollierSolver
+'Set tableRange = HollierForm.InputRange
+'Solver.InitializeVariables tableRange
+
+Set tableRange = Range("Sheet1!$B$2:$F$6")
+HollierForm.CheckBox1.Value = True
+Solver.InitializeVariables tableRange
 End Sub
