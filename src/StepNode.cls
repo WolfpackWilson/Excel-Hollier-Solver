@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "HollierSolver"
+Attribute VB_Name = "StepNode"
 Attribute VB_Base = "0{FCFB3D2A-A0FA-1068-A738-08002B3371B5}"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
@@ -11,12 +11,17 @@ Attribute VB_Exposed = False
 Attribute VB_TemplateDerived = False
 Attribute VB_Customizable = False
 
+' node pointers
+Private nextStep As Object
+Private prevStep As Object
+
+' node values
 Private pFromToRange As Range
 Private pFromToValues() As Variant
 Private pFromTotals() As Double
 Private pToTotals() As Double
 Private pMachineNbs() As Variant
-Private pSolution() As Variant
+Private pSolution As Variant
 Private pTableSize As Integer
 
 Private Sub Class_Initialize()

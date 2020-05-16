@@ -7,12 +7,12 @@ End Sub
 
 ' begin solving for Hollier
 Sub HollierMethod()
-Dim Solver As HollierSolver
+Dim Solver As StepNode
 Dim tableRange As Range
 
-Set Solver = New HollierSolver
+Set Solver = New StepNode
 'Set tableRange = HollierForm.InputRange
-'Solver.InitializeVariables tableRange
+'StepNode.InitializeVariables tableRange
 
 ' Testing
 Set tableRange = Range("Sheet1!$B$2:$F$6")
