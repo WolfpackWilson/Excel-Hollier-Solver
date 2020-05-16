@@ -8,15 +8,16 @@ End Sub
 ' begin solving for Hollier
 Sub HollierMethod()
 Dim Solver As StepNode
-Dim tableRange As Range
+Dim tableValues() As Variant
 
 Set Solver = New StepNode
-'Set tableRange = HollierForm.InputRange
-'StepNode.InitializeVariables tableRange
+'tableValues = HollierForm.InputRange
+'StepNode.InitializeVariables tableValues, HollierForm.CheckBox1.Value
 
 ' Testing
-Set tableRange = Range("Sheet1!$B$2:$F$6")
-'Set tableRange = Range("Sheet1!$C$3:$F$6")
-HollierForm.CheckBox1.Value = True
-Solver.InitializeVariables tableRange
+tableValues = Range("Sheet1!$B$2:$F$6")
+'tableValues = Range("Sheet1!$C$3:$F$6")
+Solver.InitializeVariables tableValues, True
+Solver.SolveHollier
+
 End Sub

@@ -16,7 +16,6 @@ Private nextStep As Object
 Private prevStep As Object
 
 ' node values
-Private pFromToRange As Range
 Private pFromToValues() As Variant
 Private pFromTotals() As Double
 Private pToTotals() As Double
@@ -29,11 +28,10 @@ Private Sub Class_Initialize()
 End Sub
 
 ' extract table information to initalize variables
-Public Sub InitializeVariables(ByRef tableRange As Range, Optional ByRef MachineNbs As Variant)
-If (HollierForm.CheckBox1.Value = True) Then
-    Set pFromToRange = tableRange.Offset(1, 1).Resize(tableRange.Rows.count - 1, _
-         tableRange.Columns.count - 1)
-    pFromToValues() = tableRange
+Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
+        Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode)
+If (labels) Then
+    pFromToValues() = tableValues
     pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
     ReDim pMachineNbs(1 To pTableSize)
     
@@ -43,19 +41,27 @@ If (HollierForm.CheckBox1.Value = True) Then
     Next
     
     pFromToValues() = RemoveRowCol(pFromToValues, 1)
+    HollierForm.CheckBox1.Value = False ' stop from going through future nodes
 Else
-    Set pFromToRange = tableRange
-    pFromToValues() = tableRange
+    pFromToValues() = tableValues
     pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1) + 1
-    ReDim pMachineNbs(1 To pTableSize)
     
-    ' set current machine numbers
-    For i = 1 To pTableSize
-        pMachineNbs(i) = i
-    Next
+    If IsMissing(MachineNbs) Then
+        ReDim pMachineNbs(1 To pTableSize)
+        ' set current machine numbers
+        For i = 1 To pTableSize
+            pMachineNbs(i) = i
+        Next
+    Else
+        pMachineNbs = MachineNbs
+    End If
 End If
 
 sumFromsAndTos pFromToValues
+
+If Not (IsMissing(prevNode)) Then
+    Set prevStep = prevNode
+End If
 End Sub
 
 ' remove the row and col of a two dimension array based on a 1-based position
@@ -114,5 +120,45 @@ For i = LBound(twoDimArr, 1) To UBound(twoDimArr, 1)
     currPosC = 1
     currPosR = currPosR + 1
 Next
+
+End Sub
+
+Public Sub SolveHollier()
+Dim currPos, lowest, lowestPos As Integer
+currPos = 1
+lowest = LBound(pToTotals, 1)
+lowestPos = currPos
+
+' find the lowest value/position
+For i = LBound(pMachineNbs, 1) To UBound(pMachineNbs, 1)
+    If (pToTotals(i) < lowest) Then
+        lowest = pToTotals(i)
+        lowestPos = currPos
+    End If
+    currPos = currPos + 1
+Next
+pSolution = pMachineNbs(lowestPos)
+
+If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
+    ' get machine numbers for the next step
+    Dim newMachineNbs As Variant
+    ReDim newMachineNbs(1 To UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1))
+    currPos = 1
+    
+    For i = LBound(pMachineNbs, 1) To UBound(pMachineNbs, 1)
+        If Not ((pMachineNbs(i) = pSolution)) Then
+            newMachineNbs(currPos) = pMachineNbs(i)
+            currPos = currPos + 1
+        End If
+    Next
+    
+    Dim newValues As Variant
+    newValues = RemoveRowCol(pFromToValues, lowestPos)
+    
+    Set nextStep = New StepNode
+    nextStep.InitializeVariables newValues, False, newMachineNbs, Me
+
+    nextStep.SolveHollier
+End If
 
 End Sub
