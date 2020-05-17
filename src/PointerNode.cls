@@ -13,26 +13,35 @@ Attribute VB_Customizable = False
 
 Private pNextNode, pPrevNode As StepNode
 Private pValue, pDist As Integer
-Private pDir As Boolean
 
 Private Sub Class_Initialize()
 ' initialize in a different sub
 End Sub
 
-Public Sub InitializeVariables(NextNode As StepNode, PrevNode As StepNode, _
-        value As Integer, dist As Integer, dir As Boolean)
-Set pNextNode = NextNode
+Public Sub InitializeVariables(ByRef nextNode As Variant, ByRef prevNode As Variant, _
+        ByVal value As Integer, ByVal dist As Integer)
+If (nextNode.Initialized) Then
+    Set pNextNode = nextNode
+Else
+    Set pNextNode = Nothing
+End If
+
+If (prevNode.Initialized) Then
+    Set pPrevNode = prevNode
+Else
+    Set pPrevNode = Nothing
+End If
+
 pValue = value
 pDist = dist
-pDir = dir
 End Sub
 
 Public Property Get PrevNode() As StepNode
-PrevNode = pPrevNode
+Set prevNode = pPrevNode
 End Property
 
 Public Property Get NextNode() As StepNode
-NextNode = pNextNode
+Set nextNode = pNextNode
 End Property
 
 Public Property Get value() As Integer
@@ -41,8 +50,4 @@ End Property
 
 Public Property Get dist() As Integer
 dist = pDist
-End Property
-
-Public Property Get dir() As Boolean
-dir = pDir
 End Property

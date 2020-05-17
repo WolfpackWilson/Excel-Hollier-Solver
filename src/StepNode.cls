@@ -22,17 +22,17 @@ Private pToTotals() As Double
 Private pMachineNbs() As Variant
 Private pSolution As Variant
 Private pTableSize As Integer
+Private pInitialized As Boolean
+Private pIn, pOut As Integer
 
 Private Sub Class_Initialize()
 ' initialize in a different sub
+pInitialized = False
 End Sub
 
 ' extract table information to initalize variables
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
         Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode)
-pIn = 0
-pOut = 0
-
 If (labels) Then
     pFromToValues() = tableValues
     pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
@@ -60,6 +60,9 @@ Else
 End If
 
 sumFromsAndTos pFromToValues
+pInitialized = True
+pIn = 0
+pOut = 0
 
 If Not (IsMissing(prevNode)) Then
     Set prevStep = prevNode
@@ -76,6 +79,24 @@ End Property
 
 Public Property Get Solution() As Variant
 Solution = pSolution
+End Property
+
+Public Property Get Initialized() As Boolean
+Initialized = pInitialized
+End Property
+
+Public Property Get InValue() As Integer
+InValue = pIn
+End Property
+Public Property Let InValue(value As Integer)
+pIn = value
+End Property
+
+Public Property Get OutValue() As Integer
+OutValue = pOut
+End Property
+Public Property Let OutValue(value As Integer)
+pOut = value
 End Property
 
 
@@ -181,36 +202,75 @@ End Sub
 Public Sub OutputSolution()
 Dim nodeArr() As PointerNode
 ReDim nodeArr(1 To (pTableSize * pTableSize + pTableSize)) ' table size, ins, outs, not diagonals
-Dim count, currR, currC As Integer
-Dim orderDict, machineDict
+
+Dim count, currR, currC, inSeq, backtrack, totalMoves As Integer
+Dim posDict, machineDict, stepNodeDict As Object
 Dim tmpStep As StepNode
-Set orderDict = CreateObject("Scripting.Dictionary")    ' machine - position
-Set machineDict = CreateObject("Scripting.Dictionary")  ' machine - StepNode
+
+Set posDict = CreateObject("Scripting.Dictionary")      ' machine - position
+Set machineDict = CreateObject("Scripting.Dictionary")    ' position - machine
+Set stepNodeDict = CreateObject("Scripting.Dictionary") ' machine - StepNode
 Set tmpStep = Me
 count = 1
-currR = 1
-currC = 1
 
+' fill dictionaries
 While (Not (tmpStep Is Nothing))
-    orderDict.Add tmpStep.Solution, count
-    machineDict.Add tmpStep.Solution, tmpStep
+    posDict.Add tmpStep.Solution, count
+    machineDict.Add count, tmpStep.Solution
+    stepNodeDict.Add tmpStep.Solution, tmpStep
     count = count + 1
     Set tmpStep = tmpStep.NextNode
 Wend
 
-' TODO: map everything
+' add table values as nodes
 count = 1
+currR = 1
+currC = 1
+inSeq = 0
+backtrack = 0
+totalMoves = 0
 For i = LBound(pFromToValues, 1) To UBound(pFromToValues, 1)
     For j = LBound(pFromToValues, 2) To UBound(pFromToValues, 2)
-        Dim ptrNode As PointerNode
-        Set ptrNode = New PointerNode
-        'ptrNode.InitializeVariables
-        
+        If (Not (currR = currC)) Then
+            Dim nextSNode, prevSNode As StepNode
+            Dim ptrNode As PointerNode
+            Dim value, dist As Integer
+            
+            ' add pointer node
+            Set ptrNode = New PointerNode
+            Set prevSNode = stepNodeDict(pMachineNbs(currR))
+            Set nextSNode = stepNodeDict(pMachineNbs(currC))
+            dist = posDict(nextSNode.Solution) - posDict(prevSNode.Solution)
+            value = pFromToValues(i, j)
+            
+            ptrNode.InitializeVariables nextSNode, prevSNode, value, dist
+            Set nodeArr(count) = ptrNode
+            
+            ' update moves
+            totalMoves = totalMoves + value
+            If (dist = 1) Then
+                inSeq = inSeq + value
+            ElseIf (dist < 0) Then
+                backtrack = backtrack + value
+            End If
+            
+            ' update step node in/out moves
+            If (Not (prevSNode Is Nothing)) Then
+                prevSNode.OutValue = prevSNode.OutValue + value
+            End If
+            
+            If (Not (nextSNode Is Nothing)) Then
+                nextSNode.InValue = nextSNode.InValue + value
+            End If
+            
+            count = count + 1
+        End If
         currC = currC + 1
-        count = count + 1
     Next
     currC = 1
     currR = currR + 1
 Next
+
+' TODO: add extra ins and outs
 
 End Sub
