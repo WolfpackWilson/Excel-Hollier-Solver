@@ -19,5 +19,6 @@ tableValues = Range("Sheet1!$B$2:$F$6")
 'tableValues = Range("Sheet1!$C$3:$F$6")
 Solver.InitializeVariables tableValues, True
 Solver.SolveHollier
+Solver.OutputSolution
 
 End Sub

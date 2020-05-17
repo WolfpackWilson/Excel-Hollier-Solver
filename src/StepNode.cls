@@ -15,7 +15,7 @@ Attribute VB_Customizable = False
 Private nextStep As Object
 Private prevStep As Object
 
-' node values
+' node Hollier values
 Private pFromToValues() As Variant
 Private pFromTotals() As Double
 Private pToTotals() As Double
@@ -30,6 +30,9 @@ End Sub
 ' extract table information to initalize variables
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
         Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode)
+pIn = 0
+pOut = 0
+
 If (labels) Then
     pFromToValues() = tableValues
     pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
@@ -41,7 +44,6 @@ If (labels) Then
     Next
     
     pFromToValues() = RemoveRowCol(pFromToValues, 1)
-    HollierForm.CheckBox1.Value = False ' stop from going through future nodes
 Else
     pFromToValues() = tableValues
     pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1) + 1
@@ -63,6 +65,19 @@ If Not (IsMissing(prevNode)) Then
     Set prevStep = prevNode
 End If
 End Sub
+
+Public Property Get NextNode() As StepNode
+Set NextNode = nextStep
+End Property
+
+Public Property Get PrevNode() As StepNode
+Set PrevNode = prevStep
+End Property
+
+Public Property Get Solution() As Variant
+Solution = pSolution
+End Property
+
 
 ' remove the row and col of a two dimension array based on a 1-based position
 Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Integer)
@@ -123,6 +138,7 @@ Next
 
 End Sub
 
+' solves using hollier method 1
 Public Sub SolveHollier()
 Dim currPos, lowest, lowestPos As Integer
 currPos = 1
@@ -160,5 +176,41 @@ If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
 
     nextStep.SolveHollier
 End If
+End Sub
+
+Public Sub OutputSolution()
+Dim nodeArr() As PointerNode
+ReDim nodeArr(1 To (pTableSize * pTableSize + pTableSize)) ' table size, ins, outs, not diagonals
+Dim count, currR, currC As Integer
+Dim orderDict, machineDict
+Dim tmpStep As StepNode
+Set orderDict = CreateObject("Scripting.Dictionary")    ' machine - position
+Set machineDict = CreateObject("Scripting.Dictionary")  ' machine - StepNode
+Set tmpStep = Me
+count = 1
+currR = 1
+currC = 1
+
+While (Not (tmpStep Is Nothing))
+    orderDict.Add tmpStep.Solution, count
+    machineDict.Add tmpStep.Solution, tmpStep
+    count = count + 1
+    Set tmpStep = tmpStep.NextNode
+Wend
+
+' TODO: map everything
+count = 1
+For i = LBound(pFromToValues, 1) To UBound(pFromToValues, 1)
+    For j = LBound(pFromToValues, 2) To UBound(pFromToValues, 2)
+        Dim ptrNode As PointerNode
+        Set ptrNode = New PointerNode
+        'ptrNode.InitializeVariables
+        
+        currC = currC + 1
+        count = count + 1
+    Next
+    currC = 1
+    currR = currR + 1
+Next
 
 End Sub
