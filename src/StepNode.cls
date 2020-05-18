@@ -23,7 +23,10 @@ Private pMachineNbs() As Variant
 Private pSolution As Variant
 Private pTableSize As Integer
 Private pInitialized As Boolean
+
+' for the output
 Private pIn, pOut As Integer
+Private pShape As Shape
 
 Private Sub Class_Initialize()
 ' initialize in a different sub
@@ -97,6 +100,13 @@ OutValue = pOut
 End Property
 Public Property Let OutValue(value As Integer)
 pOut = value
+End Property
+
+Public Property Get Shape() As Shape
+Set Shape = pShape
+End Property
+Public Property Let Shape(aShape As Shape)
+Set pShape = aShape
 End Property
 
 
@@ -302,6 +312,86 @@ For Each machine In pMachineNbs
     count = count + 1
 Next
 
-' TODO: PLOT IT
+makeFlowChart nodeArr, stepNodeDict
+End Sub
 
+' creates a flow chart of the manufacturing movement
+Private Sub makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant)
+Dim shapeList As Object
+Dim currShape As Shape
+Dim sPosLeft, sPosTop, sPosWidth, sPosHeight, distHor, distVert As Double
+Dim inToPt, distMod As Double
+Dim count As Integer
+
+Set shapeList = CreateObject("System.Collections.ArrayList")
+inToPt = 72
+count = 1
+
+' format layout
+sPosLeft = 11 * 1 / 12 * inToPt
+sPosTop = 8.5 * 1 / 8 * inToPt
+
+' format machine nodes
+sPosWidth = 0.25 * inToPt
+sPosHeight = sPosWidth
+distMod = 1
+
+' draw and add machine nodes
+For Each machine In stepNodeDict
+    Set currShape = ActiveSheet.Shapes.AddShape(msoShapeFlowchartConnector, _
+            sPosLeft * distMod, sPosTop, sPosWidth, sPosHeight)
+    With currShape
+        .Fill.Visible = msoFalse
+        
+        With .Line
+            .Visible = msoTrue
+            .ForeColor.RGB = RGB(0, 0, 0)
+            .Transparency = 0
+        End With
+    
+        With .TextFrame2
+            With .TextRange.Font.Fill
+                .Visible = msoTrue
+                .ForeColor.RGB = RGB(0, 0, 0)
+                .Transparency = 0
+                .Solid
+            End With
+        
+            .VerticalAnchor = msoAnchorMiddle
+            With .TextRange
+                .ParagraphFormat.Alignment = msoAlignCenter
+                
+                With .Characters
+                    .Text = stepNodeDict(machine).Solution
+                
+                    With .ParagraphFormat
+                        .FirstLineIndent = 0
+                        .Alignment = msoAlignCenter
+                    End With
+                    
+                    With .Font
+                        .NameComplexScript = "+mn-cs"
+                        .NameFarEast = "+mn-ea"
+                        .Fill.Visible = msoTrue
+                        .Fill.ForeColor.RGB = RGB(0, 0, 0)
+                        .Fill.Transparency = 0
+                        .Fill.Solid
+                        .Size = 11
+                        .Name = "+mn-lt"
+                    End With
+                End With
+            End With
+        End With
+    End With
+    
+    shapeList.Insert shapeList.count, currShape
+    stepNodeDict(machine).Shape = currShape
+    count = count + 1
+    distMod = distMod + 1
+Next
+
+' draw and add pointer nodes
+For Each pointer In pointers
+    
+Next
 End Sub
