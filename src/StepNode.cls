@@ -199,9 +199,10 @@ If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
 End If
 End Sub
 
+' create the solution and output it into Excel
 Public Sub OutputSolution()
 Dim nodeArr() As PointerNode
-ReDim nodeArr(1 To (pTableSize * pTableSize + pTableSize)) ' table size, ins, outs, not diagonals
+ReDim nodeArr(1 To (pTableSize * pTableSize)) ' table size, ins/outs, not diagonals
 
 Dim count, currR, currC, inSeq, backtrack, totalMoves As Integer
 Dim posDict, machineDict, stepNodeDict As Object
@@ -271,6 +272,36 @@ For i = LBound(pFromToValues, 1) To UBound(pFromToValues, 1)
     currR = currR + 1
 Next
 
-' TODO: add extra ins and outs
+' add extra ins and outs
+For Each machine In pMachineNbs
+    Dim step As StepNode
+    Dim ptrNode2 As PointerNode
+    Dim nextSNode2, prevSNode2 As StepNode
+    Dim value2, dist2 As Integer
+    
+    Set step = stepNodeDict(machine)
+    Set ptrNode2 = New PointerNode
+    value2 = step.OutValue - step.InValue
+    dist2 = 0 ' this is done to separate from 1 distances
+    
+    If (value2 > 0) Then ' parts added
+        Set nextSNode2 = step
+        Set prevSNode2 = New StepNode
+    ElseIf (value2 < 0) Then ' parts exit
+        value2 = -value2
+        Set nextSNode2 = New StepNode
+        Set prevSNode2 = step
+    Else ' value2 = 0; no parts in/out
+        Set nextSNode2 = step
+        Set prevSNode2 = step
+    End If
+    
+    ptrNode2.InitializeVariables nextSNode2, prevSNode2, value2, dist2
+    
+    Set nodeArr(count) = ptrNode2
+    count = count + 1
+Next
+
+' TODO: PLOT IT
 
 End Sub
