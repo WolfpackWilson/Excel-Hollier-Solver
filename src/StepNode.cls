@@ -312,16 +312,17 @@ For Each machine In pMachineNbs
     count = count + 1
 Next
 
-makeFlowChart nodeArr, stepNodeDict
+makeFlowChart nodeArr, stepNodeDict, posDict
 End Sub
 
 ' creates a flow chart of the manufacturing movement
-Private Sub makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant)
+Private Sub makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant, _
+        ByRef posDict As Variant)
 Dim shapeList As Object
-Dim currShape As Shape
+Dim currShape, currTextBox As Shape
 Dim sPosLeft, sPosTop, sPosWidth, sPosHeight, distHor, distVert As Double
 Dim inToPt, distMod As Double
-Dim count As Integer
+Dim count, fontSize As Integer
 
 Set shapeList = CreateObject("System.Collections.ArrayList")
 inToPt = 72
@@ -329,7 +330,8 @@ count = 1
 
 ' format layout
 sPosLeft = 11 * 1 / 12 * inToPt
-sPosTop = 8.5 * 1 / 8 * inToPt
+sPosTop = 3 * inToPt '8.5 * 1 / 8 * inToPt
+fontSize = 10
 
 ' format machine nodes
 sPosWidth = 0.25 * inToPt
@@ -339,7 +341,7 @@ distMod = 1
 ' draw and add machine nodes
 For Each machine In stepNodeDict
     Set currShape = ActiveSheet.Shapes.AddShape(msoShapeFlowchartConnector, _
-            sPosLeft * distMod, sPosTop, sPosWidth, sPosHeight)
+            sPosLeft * (distMod + 1), sPosTop, sPosWidth, sPosHeight)
     With currShape
         .Fill.Visible = msoFalse
         
@@ -376,7 +378,7 @@ For Each machine In stepNodeDict
                         .Fill.ForeColor.RGB = RGB(0, 0, 0)
                         .Fill.Transparency = 0
                         .Fill.Solid
-                        .Size = 11
+                        .Size = fontSize
                         .Name = "+mn-lt"
                     End With
                 End With
@@ -390,8 +392,75 @@ For Each machine In stepNodeDict
     distMod = distMod + 1
 Next
 
+' group shapes MOVE TO BOTTOM
+Dim shapeStr() As Variant
+ReDim shapeStr(1 To shapeList.count)
+For i = 1 To shapeList.count
+    shapeStr(i) = shapeList(i - 1).Name
+Next
+ActiveSheet.Shapes.Range(shapeStr).Group
+
 ' draw and add pointer nodes
 For Each pointer In pointers
-    
+    If (pointer.value <> 0) Then
+        If (pointer.dist > 1 And pointer.dist < 0) Then ' curved pointer
+        
+        ElseIf (pointer.dist = 1) Then ' straight pointer
+            Dim sPosLineTop, sPosTextBoxLeft As Double
+            sPosLineTop = sPosTop + sPosHeight / 2
+            
+            Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
+                    sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
+            With currShape
+                .Line.EndArrowheadStyle = msoArrowheadTriangle
+                .ConnectorFormat.BeginConnect pointer.prevNode.Shape, 7
+                .ConnectorFormat.EndConnect pointer.nextNode.Shape, 3
+                .ShapeStyle = msoLineStylePreset1
+            End With
+            
+            sPosTextBoxLeft = sPosLeft * (posDict(pointer.prevNode.Solution) + 1) + _
+                    sPosLeft / 2 - sPosWidth / 2
+            Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
+                    sPosTextBoxLeft, sPosLineTop - sPosHeight / 1.25, sPosWidth * 2, sPosHeight)
+        Else ' in/out pointer
+        
+        End If
+        
+        ' pretty it up
+        With currTextBox
+            .Fill.Visible = msoFalse
+            .Line.Visible = msoFalse
+            
+            With .TextFrame2
+                .VerticalAnchor = msoAnchorMiddle
+                .TextRange.ParagraphFormat.Alignment = msoAlignCenter
+                
+                With .TextRange.Characters
+                    .Text = pointer.value
+                    
+                    With .ParagraphFormat
+                        .FirstLineIndent = 0
+                        .Alignment = msoAlignCenter
+                    End With
+                    
+                    With .Font
+                        .NameComplexScript = "+mn-cs"
+                        .NameFarEast = "+mn-ea"
+                        .Fill.Visible = msoTrue
+                        .Fill.ForeColor.ObjectThemeColor = msoThemeColorDark1
+                        .Fill.ForeColor.TintAndShade = 0
+                        .Fill.ForeColor.Brightness = 0
+                        .Fill.Transparency = 0
+                        .Fill.Solid
+                        .Size = fontSize
+                        .Name = "+mn-lt"
+                    End With
+                End With
+            End With
+        End With
+        
+        shapeList.Insert shapeList.count, currShape
+        shapeList.Insert shapeList.count, currTextBox
+    End If
 Next
 End Sub
