@@ -217,6 +217,7 @@ ReDim nodeArr(1 To (pTableSize * pTableSize)) ' table size, ins/outs, not diagon
 Dim count, currR, currC, inSeq, backtrack, totalMoves As Integer
 Dim posDict, machineDict, stepNodeDict As Object
 Dim tmpStep As StepNode
+Dim flowChart As Variant
 
 Set posDict = CreateObject("Scripting.Dictionary")      ' machine - position
 Set machineDict = CreateObject("Scripting.Dictionary")    ' position - machine
@@ -312,11 +313,11 @@ For Each machine In pMachineNbs
     count = count + 1
 Next
 
-makeFlowChart nodeArr, stepNodeDict, posDict
+Set flowChart = makeFlowChart(nodeArr, stepNodeDict, posDict)
 End Sub
 
 ' creates a flow chart of the manufacturing movement
-Private Sub makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant, _
+Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant, _
         ByRef posDict As Variant)
 Dim shapeList As Object
 Dim currShape, currTextBox As Shape
@@ -386,27 +387,19 @@ For Each machine In stepNodeDict
         End With
     End With
     
-    shapeList.Insert shapeList.count, currShape
+    shapeList.Insert shapeList.count, currShape.Name
     stepNodeDict(machine).Shape = currShape
     count = count + 1
     distMod = distMod + 1
 Next
 
-' group shapes MOVE TO BOTTOM , change shapelist to name str?
-Dim shapeStr() As Variant
-ReDim shapeStr(1 To shapeList.count)
-For i = 1 To shapeList.count
-    shapeStr(i) = shapeList(i - 1).Name
-Next
-ActiveSheet.Shapes.Range(shapeStr).Group
-
 ' draw and add pointer nodes
 Dim sPosLineTop, sPosTextBoxLeft, sPosTextBoxTop As Double
+sPosLineTop = sPosTop + sPosHeight / 2
 
 For Each pointer In pointers
     If (pointer.value <> 0) Then
         If (pointer.dist > 1 Or pointer.dist < 0) Then ' curved pointer
-            sPosLineTop = sPosTop + sPosHeight / 2
             Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorCurve, _
             sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
             
@@ -432,7 +425,6 @@ For Each pointer In pointers
             Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                     sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
         ElseIf (pointer.dist = 1) Then ' straight pointer
-            sPosLineTop = sPosTop + sPosHeight / 2
             Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
                     sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
                     
@@ -448,7 +440,78 @@ For Each pointer In pointers
             Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                     sPosTextBoxLeft, sPosLineTop - sPosHeight / 1.25, sPosWidth * 2, sPosHeight)
         Else ' in/out pointer
+            If (pointer.nextNode Is Nothing) Then ' out pointer
+                If (posDict(pointer.prevNode.Solution) = posDict.count) Then ' last
+                
+                    sPosTextBoxLeft = sPosLeft * (posDict.count + 1.75)
+                    Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
+                            sPosTextBoxLeft, sPosLineTop - sPosHeight / 2, sPosWidth * 2, sPosHeight)
+                            
+                    Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
+                            sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
+                            
+                    With currShape
+                        .Line.EndArrowheadStyle = msoArrowheadTriangle
+                        .ConnectorFormat.BeginConnect pointer.prevNode.Shape, 7
+                        .ConnectorFormat.EndConnect currTextBox, 2
+                        .ShapeStyle = msoLineStylePreset1
+                    End With
+                
+                Else ' regular out
+                
+                    sPosTextBoxLeft = sPosLeft * (posDict(pointer.prevNode.Solution) + 1) - _
+                            sPosWidth / 2
+                    sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
+                    Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
+                            sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
+                            
+                    Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
+                            sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
+                            
+                    With currShape
+                        .Line.EndArrowheadStyle = msoArrowheadTriangle
+                        .ConnectorFormat.BeginConnect pointer.prevNode.Shape, 5
+                        .ConnectorFormat.EndConnect currTextBox, 1
+                        .ShapeStyle = msoLineStylePreset1
+                    End With
+                    
+                End If
+            Else ' in pointer
             
+                If (posDict(pointer.nextNode.Solution) = 1) Then ' first
+                    Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
+                            sPosLeft, sPosLineTop - sPosHeight / 2, sPosWidth * 2, sPosHeight)
+                            
+                    Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
+                            sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
+                            
+                    With currShape
+                        .Line.EndArrowheadStyle = msoArrowheadTriangle
+                        .ConnectorFormat.BeginConnect currTextBox, 4
+                        .ConnectorFormat.EndConnect pointer.nextNode.Shape, 3
+                        .ShapeStyle = msoLineStylePreset1
+                    End With
+                    
+                Else ' regular in
+                
+                    sPosTextBoxLeft = sPosLeft * (posDict(pointer.nextNode.Solution) + 1) - _
+                            sPosWidth / 2
+                    sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
+                    Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
+                            sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
+                            
+                    Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
+                            sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
+                            
+                    With currShape
+                        .Line.EndArrowheadStyle = msoArrowheadTriangle
+                        .ConnectorFormat.BeginConnect currTextBox, 1
+                        .ConnectorFormat.EndConnect pointer.nextNode.Shape, 5
+                        .ShapeStyle = msoLineStylePreset1
+                    End With
+                    
+                End If
+            End If
         End If
         
         ' pretty it up
@@ -484,8 +547,11 @@ For Each pointer In pointers
             End With
         End With
         
-        shapeList.Insert shapeList.count, currShape
-        shapeList.Insert shapeList.count, currTextBox
+        shapeList.Insert shapeList.count, currShape.Name
+        shapeList.Insert shapeList.count, currTextBox.Name
     End If
 Next
-End Sub
+
+' group shapes
+Set makeFlowChart = ActiveSheet.Shapes.Range(shapeList.ToArray).Group
+End Function
