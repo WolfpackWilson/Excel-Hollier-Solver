@@ -173,7 +173,7 @@ End Sub
 Public Sub SolveHollier()
 Dim currPos, lowest, lowestPos As Integer
 currPos = 1
-lowest = LBound(pToTotals, 1)
+lowest = pToTotals(LBound(pToTotals, 1))
 lowestPos = currPos
 
 ' find the lowest value/position
@@ -313,10 +313,12 @@ For Each machine In pMachineNbs
     count = count + 1
 Next
 
+' TODO: create tables
 Set flowChart = makeFlowChart(nodeArr, stepNodeDict, posDict)
+' TODO: create output and make it pretty
 End Sub
 
-' creates a flow chart of the manufacturing movement
+' creates a flow chart of the part manufacturing movements
 Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant, _
         ByRef posDict As Variant)
 Dim shapeList As Object
@@ -463,7 +465,7 @@ For Each pointer In pointers
                             sPosWidth / 2
                     sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
                     Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
-                            sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
+                            sPosTextBoxLeft + sPosLeft / 2, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
                             
                     Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
                             sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
@@ -498,7 +500,7 @@ For Each pointer In pointers
                             sPosWidth / 2
                     sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
                     Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
-                            sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
+                            sPosTextBoxLeft - sPosLeft / 2, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
                             
                     Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
                             sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
