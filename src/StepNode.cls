@@ -14,15 +14,18 @@ Attribute VB_Customizable = False
 ' node pointers
 Private nextStep As Object
 Private prevStep As Object
+Private mthd2Step As Object
 
 ' node Hollier values
 Private pFromToValues() As Variant
 Private pFromTotals() As Double
 Private pToTotals() As Double
+Private pFromToRatios() As Double
 Private pMachineNbs() As Variant
 Private pSolution As Variant
 Private pTableSize As Integer
 Private pInitialized As Boolean
+Private pHollier2 As Boolean
 
 ' for the output
 Private pIn, pOut As Integer
@@ -35,7 +38,8 @@ End Sub
 
 ' extract table information to initalize variables
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
-        Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode)
+        Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode, _
+        Optional ByVal hollier2 As Boolean)
 If (labels) Then
     pFromToValues() = tableValues
     pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
@@ -69,6 +73,12 @@ pOut = 0
 
 If Not (IsMissing(prevNode)) Then
     Set prevStep = prevNode
+End If
+
+If (IsMissing(hollier2)) Then
+    pHollier2 = False
+Else
+    pHollier2 = hollier2
 End If
 End Sub
 
@@ -167,20 +177,40 @@ For i = LBound(twoDimArr, 1) To UBound(twoDimArr, 1)
     currPosR = currPosR + 1
 Next
 
+ReDim pFromToRatios(1 To arrSize)
+For i = LBound(pToTotals) To UBound(pToTotals)
+    If (pToTotals(i) = 0) Then
+        pFromToRatios(i) = (2 ^ 15) - 1
+    Else
+        pFromToRatios(i) = pFromTotals(i) / pToTotals(i)
+    End If
+Next
+
 End Sub
 
-' solves using hollier method 1
+' solves using a hollier method
 Public Sub SolveHollier()
 Dim currPos, lowest, lowestPos As Integer
 currPos = 1
 lowest = pToTotals(LBound(pToTotals, 1))
 lowestPos = currPos
 
+If (pHollier2) Then
+    lowest = pFromToRatios(LBound(pFromToRatios, 1))
+End If
+
 ' find the lowest value/position
 For i = LBound(pMachineNbs, 1) To UBound(pMachineNbs, 1)
-    If (pToTotals(i) < lowest) Then
-        lowest = pToTotals(i)
-        lowestPos = currPos
+    If (pHollier2) Then
+        If (pFromToRatios(i) > lowest) Then ' finding highest in this method
+            lowest = pFromToRatios(i)
+            lowestPos = currPos
+        End If
+    Else
+        If (pToTotals(i) < lowest) Then
+            lowest = pToTotals(i)
+            lowestPos = currPos
+        End If
     End If
     currPos = currPos + 1
 Next
@@ -203,13 +233,13 @@ If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
     newValues = RemoveRowCol(pFromToValues, lowestPos)
     
     Set nextStep = New StepNode
-    nextStep.InitializeVariables newValues, False, newMachineNbs, Me
+    nextStep.InitializeVariables newValues, False, newMachineNbs, Me, pHollier2
     nextStep.SolveHollier
 End If
 End Sub
 
 ' create the solution and output it into Excel
-Public Sub OutputSolution(ByRef outputRange As Range)
+Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boolean)
 Dim nodeArr() As PointerNode
 ReDim nodeArr(1 To (pTableSize * pTableSize)) ' table size, ins/outs, not diagonals
 
@@ -353,25 +383,63 @@ Next
 Set tableRange = outRange.Resize(nbRows, nbRows)
 tableRange.value = table
 formatTable tableRange
+
+' hollier method 2 add on
+If (pHollier2) Then
+    ReDim table(1 To nbRows, 1 To 1)
+    table(1, 1) = "From/To Ratios"
+    table(UBound(table, 1), 1) = ""
+    
+    For i = 2 To UBound(table, 1) - 1
+        If (pFromToRatios(i - 1) = (2 ^ 15) - 1) Then
+            table(i, 1) = "Infinite"
+        Else
+            table(i, 1) = Round(pFromToRatios(i - 1), 2)
+        End If
+    Next
+    
+    Set tableRange = outRange.Resize(nbRows, 1).Offset(0, nbRows)
+    tableRange.value = table
+    formatTable tableRange
+    tableRange.Font.Bold = False
+    tableRange.Cells(1, 1).Font.Bold = True
+End If
+
 Set outRange = outRange.Offset(nbRows + 1, 0)
 
 ' create comparison table
-ReDim tableMoves(1 To 2, 1 To 8)
-tableMoves(1, 1) = "Hollier Method"
-tableMoves(1, 3) = "Machine Order"
-tableMoves(1, 5) = "In-sequence %"
-tableMoves(1, 7) = "Backtracking %"
-tableMoves(2, 1) = 1
-tableMoves(2, 5) = Round(inSeq / totalMoves * 100, 2)
-tableMoves(2, 7) = Round(backtrack / totalMoves * 100, 2)
-
-For Each machine In machineDict
-    tableMoves(2, 3) = tableMoves(2, 3) & machineDict(machine) & " "
-Next
-
-Set tableRange = outRange.Resize(2, 8)
-tableRange.value = tableMoves
-formatTable tableRange
+If (Not (pHollier2)) Then
+    ReDim tableMoves(1 To 2, 1 To 8)
+    tableMoves(1, 1) = "Hollier Method"
+    tableMoves(1, 3) = "Machine Order"
+    tableMoves(1, 5) = "In-sequence %"
+    tableMoves(1, 7) = "Backtracking %"
+    tableMoves(2, 1) = 1
+    tableMoves(2, 5) = Round(inSeq / totalMoves * 100, 2)
+    tableMoves(2, 7) = Round(backtrack / totalMoves * 100, 2)
+    
+    For Each machine In machineDict
+        tableMoves(2, 3) = tableMoves(2, 3) & machineDict(machine) & " "
+    Next
+    
+    Set tableRange = outRange.Resize(2, 8)
+    tableRange.value = tableMoves
+    formatTable tableRange
+Else
+    ReDim tableMoves(1 To 1, 1 To 8)
+    tableMoves(1, 1) = 2
+    tableMoves(1, 5) = Round(inSeq / totalMoves * 100, 2)
+    tableMoves(1, 7) = Round(backtrack / totalMoves * 100, 2)
+    
+    For Each machine In machineDict
+        tableMoves(1, 3) = tableMoves(1, 3) & machineDict(machine) & " "
+    Next
+    
+    Set tableRange = outRange.Resize(1, 8).Offset(2, 0)
+    tableRange.value = tableMoves
+    formatTable tableRange
+    tableRange.Font.Bold = False
+End If
 
 With tableRange
     Range(.Cells(1, 1), .Cells(1, 2)).Select
@@ -395,17 +463,28 @@ With tableRange
     Next
 End With
 
-Set outRange = outRange.Offset(4, 0)
+If (Not (pHollier2)) Then
+    Set outRange = outRange.Offset(4, 0)
+Else
+    Set outRange = outRange.Offset(5, 0)
+End If
 
-Dim flowChart As Variant
-Set flowChart = makeFlowChart(nodeArr, stepNodeDict, posDict)
+If (createFlowDia) Then
+    Dim flowChart As Variant
+    Set flowChart = makeFlowChart(nodeArr, stepNodeDict, posDict)
+    
+    With flowChart
+        .Left = outRange.Left
+        .Top = outRange.Top
+        
+        If (pHollier2) Then
+            .Top = .Top + .height
+        End If
+    End With
+End If
 
-With flowChart
-    .Left = outRange.Left
-    .Top = outRange.Top
-End With
-
-outRange.Select
+Application.CutCopyMode = False
+outRange.Offset(-(6 + nbRows), 0).Select
 End Sub
 
 Private Sub formatTable(ByRef tableRange As Range)
@@ -611,7 +690,7 @@ For Each pointer In pointers
                             sPosWidth / 2
                     sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
                     Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
-                            sPosTextBoxLeft + sPosLeft / 2, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
+                            sPosTextBoxLeft + sPosLeft / 4, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
                             
                     Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
                             sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
@@ -646,7 +725,7 @@ For Each pointer In pointers
                             sPosWidth / 2
                     sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
                     Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
-                            sPosTextBoxLeft - sPosLeft / 2, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
+                            sPosTextBoxLeft - sPosLeft / 4, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
                             
                     Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
                             sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)

@@ -7,7 +7,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} HollierForm
    ClientTop       =   465
    ClientWidth     =   7260
    StartUpPosition =   2  'CenterScreen
-   TypeInfoVer     =   61
+   TypeInfoVer     =   62
 End
 Attribute VB_Name = "HollierForm"
 Attribute VB_Base = "0{7257B53A-2B65-417B-9C46-32037726137E}{E5D88FAC-2DAA-42FD-A293-1E6F12814AEE}"
@@ -19,9 +19,14 @@ Attribute VB_TemplateDerived = False
 Attribute VB_Customizable = False
 Public InputRange As Range
 Public OutputCell As Range
+Public outFlowDia As Boolean
+Public outHollier2 As Boolean
 
 ' OK button
 Private Sub CommandButton1_Click()
+outFlowDia = Me.CheckBox2.value
+outHollier2 = Me.CheckBox3.value
+
 If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
     If (OptionButton1.Value = True And getRange(RefEdit2.Text, OutputCell) And Not (OutputCell Is Nothing)) Then
         Dim arr1Length, arr2Length As Integer
