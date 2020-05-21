@@ -19,14 +19,9 @@ Attribute VB_TemplateDerived = False
 Attribute VB_Customizable = False
 Public InputRange As Range
 Public OutputCell As Range
-Public outFlowDia As Boolean
-Public outHollier2 As Boolean
 
 ' OK button
 Private Sub CommandButton1_Click()
-outFlowDia = Me.CheckBox2.value
-outHollier2 = Me.CheckBox3.value
-
 If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
     If (OptionButton1.Value = True And getRange(RefEdit2.Text, OutputCell) And Not (OutputCell Is Nothing)) Then
         Dim arr1Length, arr2Length As Integer
@@ -45,8 +40,6 @@ If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
             MsgBox ("Please make sure your input has the same number of rows and columns.")
         End If
     ElseIf (OptionButton2.Value = True) Then
-        Sheets.Add.Name = "Hollier Output"
-        Set OutputCell = Range("A1")
         Me.Hide
         Main.HollierMethod
         Unload Me
