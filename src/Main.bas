@@ -9,24 +9,29 @@ End Sub
 Sub HollierMethod()
 Dim Solver As StepNode
 Dim tableValues() As Variant
+Dim outputRange As Range
 
 Set Solver = New StepNode
 Set Solver2 = New StepNode
-'tableValues = HollierForm.InputRange
+tableValues = HollierForm.InputRange
 
-' Testing
-Dim aRange As Range
-Set aRange = Range("B17")
+' choose output range based on the form selection
+If (HollierForm.OptionButton1.value = True) Then
+    Set outputRange = HollierForm.OutputCell
+Else
+    Set outputRange = Range("A1")
+End If
 
-tableValues = Range("Sheet1!$B$2:$F$6")
-'tableValues = Range("Sheet1!$C$3:$F$6")
-Solver.InitializeVariables tableValues, True
+' solve using method 1
+Solver.InitializeVariables tableValues, HollierForm.CheckBox1.value
 Solver.SolveHollier
-Solver.OutputSolution aRange, True
+Solver.OutputSolution outputRange, HollierForm.CheckBox2.value
 
-' surround by if when wrapping up
-Solver2.InitializeVariables tableValues, True, hollier2:=True
-Solver2.SolveHollier
-Solver2.OutputSolution aRange, True
+' solve using method 2, if desired
+If (HollierForm.CheckBox3.value = True) Then
+    Solver2.InitializeVariables tableValues, HollierForm.CheckBox1.value, hollier2:=True
+    Solver2.SolveHollier
+    Solver2.OutputSolution outputRange, HollierForm.CheckBox2.value
+End If
 
 End Sub
