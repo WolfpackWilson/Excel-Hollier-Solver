@@ -204,24 +204,24 @@ If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
     
     Set nextStep = New StepNode
     nextStep.InitializeVariables newValues, False, newMachineNbs, Me
-
     nextStep.SolveHollier
 End If
 End Sub
 
 ' create the solution and output it into Excel
-Public Sub OutputSolution()
+Public Sub OutputSolution(ByRef outputRange As Range)
 Dim nodeArr() As PointerNode
 ReDim nodeArr(1 To (pTableSize * pTableSize)) ' table size, ins/outs, not diagonals
 
 Dim count, currR, currC, inSeq, backtrack, totalMoves As Integer
 Dim posDict, machineDict, stepNodeDict As Object
 Dim tmpStep As StepNode
-Dim flowChart As Variant
+Dim outRange As Range
 
 Set posDict = CreateObject("Scripting.Dictionary")      ' machine - position
 Set machineDict = CreateObject("Scripting.Dictionary")    ' position - machine
 Set stepNodeDict = CreateObject("Scripting.Dictionary") ' machine - StepNode
+Set outRange = outputRange
 Set tmpStep = Me
 count = 1
 
@@ -313,9 +313,155 @@ For Each machine In pMachineNbs
     count = count + 1
 Next
 
-' TODO: create tables
+' create tables
+Dim nbRows As Long
+Dim table(), tableMoves() As Variant
+Dim tableRange As Range
+
+' create to/from table
+nbRows = UBound(pFromToValues) - LBound(pFromToValues) + 3
+ReDim table(1 To nbRows, 1 To nbRows)
+
+For i = 1 To nbRows
+    For j = 1 To nbRows
+        If (i = 1 And j = 1) Then
+            table(i, j) = "From/To"
+        ElseIf (i = 1) Then
+            If (j <> nbRows) Then
+                table(i, j) = pMachineNbs(j - 1)
+            Else
+                table(i, j) = Chr(34) & "From" & Chr(34) & " Sums"
+            End If
+        ElseIf (j = 1) Then
+            If (i <> nbRows) Then
+                table(i, j) = pMachineNbs(i - 1)
+            Else
+                table(i, j) = Chr(34) & "To" & Chr(34) & " Sums"
+            End If
+        ElseIf (i = nbRows And j = nbRows) Then
+            table(i, j) = totalMoves
+        ElseIf (i = nbRows) Then
+            table(i, j) = pToTotals(j - 1)
+        ElseIf (j = nbRows) Then
+            table(i, j) = pFromTotals(i - 1)
+        Else
+            table(i, j) = pFromToValues(i - 1, j - 1)
+        End If
+    Next
+Next
+
+Set tableRange = outRange.Resize(nbRows, nbRows)
+tableRange.value = table
+formatTable tableRange
+Set outRange = outRange.Offset(nbRows + 1, 0)
+
+' create comparison table
+ReDim tableMoves(1 To 2, 1 To 8)
+tableMoves(1, 1) = "Hollier Method"
+tableMoves(1, 3) = "Machine Order"
+tableMoves(1, 5) = "In-sequence %"
+tableMoves(1, 7) = "Backtracking %"
+tableMoves(2, 1) = 1
+tableMoves(2, 5) = Round(inSeq / totalMoves * 100, 2)
+tableMoves(2, 7) = Round(backtrack / totalMoves * 100, 2)
+
+For Each machine In machineDict
+    tableMoves(2, 3) = tableMoves(2, 3) & machineDict(machine) & " "
+Next
+
+Set tableRange = outRange.Resize(2, 8)
+tableRange.value = tableMoves
+formatTable tableRange
+
+With tableRange
+    Range(.Cells(1, 1), .Cells(1, 2)).Select
+    Selection.Merge
+    Selection.Copy
+    For i = 2 To .Rows.count
+        .Cells(i, 1).PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+                SkipBlanks:=False, Transpose:=False
+    Next
+    
+    Range(.Cells(1, 1), .Cells(.Rows.count, 2)).Select
+    Selection.Copy
+    For i = 3 To .Columns.count
+        .Cells(1, i).PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+                SkipBlanks:=False, Transpose:=False
+        i = i + 1
+    Next
+    
+    For i = 2 To .Rows.count
+        .Rows(i).Font.Bold = False
+    Next
+End With
+
+Set outRange = outRange.Offset(4, 0)
+
+Dim flowChart As Variant
 Set flowChart = makeFlowChart(nodeArr, stepNodeDict, posDict)
-' TODO: create output and make it pretty
+
+With flowChart
+    .Left = outRange.Left
+    .Top = outRange.Top
+End With
+
+outRange.Select
+End Sub
+
+Private Sub formatTable(ByRef tableRange As Range)
+    With tableRange
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .WrapText = True
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+        .Rows(1).Font.Bold = True
+        .Columns(1).Font.Bold = True
+    
+        .Borders(xlDiagonalDown).LineStyle = xlNone
+        .Borders(xlDiagonalUp).LineStyle = xlNone
+        
+        With .Borders(xlEdgeLeft)
+            .LineStyle = xlContinuous
+            .ColorIndex = xlAutomatic
+            .TintAndShade = 0
+            .Weight = xlMedium
+        End With
+        With .Borders(xlEdgeTop)
+            .LineStyle = xlContinuous
+            .ColorIndex = xlAutomatic
+            .TintAndShade = 0
+            .Weight = xlMedium
+        End With
+        With .Borders(xlEdgeBottom)
+            .LineStyle = xlContinuous
+            .ColorIndex = xlAutomatic
+            .TintAndShade = 0
+            .Weight = xlMedium
+        End With
+        With .Borders(xlEdgeRight)
+            .LineStyle = xlContinuous
+            .ColorIndex = xlAutomatic
+            .TintAndShade = 0
+            .Weight = xlMedium
+        End With
+        With .Borders(xlInsideVertical)
+            .LineStyle = xlContinuous
+            .ColorIndex = xlAutomatic
+            .TintAndShade = 0
+            .Weight = xlMedium
+        End With
+        With .Borders(xlInsideHorizontal)
+            .LineStyle = xlContinuous
+            .ColorIndex = xlAutomatic
+            .TintAndShade = 0
+            .Weight = xlMedium
+        End With
+    End With
 End Sub
 
 ' creates a flow chart of the part manufacturing movements

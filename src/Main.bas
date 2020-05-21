@@ -15,10 +15,13 @@ Set Solver = New StepNode
 'StepNode.InitializeVariables tableValues, HollierForm.CheckBox1.Value
 
 ' Testing
+Dim aRange As Range
+Set aRange = Range("B17")
+
 tableValues = Range("Sheet1!$B$2:$F$6")
 'tableValues = Range("Sheet1!$C$3:$F$6")
 Solver.InitializeVariables tableValues, True
 Solver.SolveHollier
-Solver.OutputSolution
+Solver.OutputSolution aRange
 
 End Sub
