@@ -46,32 +46,33 @@ Public OutputCell As Range
 ' -------------------------------------------
 Private Sub CommandButton1_Click()
     If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
-        ''check if range option is selected, is present, and is correct
-        If (OptionButton1.value = True And getRange(RefEdit2.Text, OutputCell) _
-                And Not (OutputCell Is Nothing)) Then
-            Dim arr1Length, arr2Length As Integer
-            Dim arrRange() As Variant
-            
-            arrRange = InputRange
-            arr1Length = UBound(arrRange, 1) - LBound(arrRange, 1)
-            arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
-            
-            ''check if the array is square
-            If (arr1Length = arr2Length) Then
+        ''check if the array is square
+        Dim arr1Length, arr2Length As Integer
+        Dim arrRange() As Variant
+        
+        arrRange = InputRange
+        arr1Length = UBound(arrRange, 1) - LBound(arrRange, 1)
+        arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
+        
+        If (arr1Length = arr2Length) Then
+            ''check if output range option is selected, is present, and is correct
+            If (OptionButton1.value = True And getRange(RefEdit2.Text, OutputCell) _
+                    And Not (OutputCell Is Nothing)) Then
                 Set OutputCell = OutputCell.Cells(1, 1)
                 Me.Hide
                 Main.HollierMethod
                 Unload Me
+                
+            ''use a new sheet
+            ElseIf (OptionButton2.value = True) Then
+                Me.Hide
+                Main.HollierMethod
+                Unload Me
             Else
-                MsgBox ("Please make sure your input has the same number of rows and columns.")
+                MsgBox ("Something is wrong with you output range. Please try reselecting it.")
             End If
-        ''use a new sheet
-        ElseIf (OptionButton2.value = True) Then
-            Me.Hide
-            Main.HollierMethod
-            Unload Me
         Else
-            MsgBox ("Something is wrong with you output range. Please try reselecting it.")
+            MsgBox ("Please make sure your input has the same number of rows and columns.")
         End If
     Else
         MsgBox ("Something is wrong with your input range. Please try reselecting it.")
@@ -90,10 +91,11 @@ End Sub
 ' -------------------------------------------
 Private Sub CommandButton3_Click()
     MsgBox ("Input Range:" & vbTab & "Select your data" & vbLf _
-           & "Machine Labels:" & vbTab & "Check if machines numbers are included" & vbLf & vbLf _
+           & "Machine Labels:" & vbTab & "Machines numbers are included" & vbLf & vbLf _
            & "Output Range:" & vbTab & "Select the output cell" & vbLf _
-           & "New Worksheet:" & vbTab & "Output onto a ply worksheet" & vbLf _
-           & "Flow Diagram:" & vbTab & "Create a flow chart from the results")
+           & "New Worksheet:" & vbTab & "Output onto a ply worksheet" & vbLf & vbLf _
+           & "Hollier Method 2:" & vbTab & "Also solve with Hollier method 2" & vbLf _
+           & "Flow Diagram:" & vbTab & "Create a machine flow diagram from the results")
 End Sub
 
 ' -------------------------------------------
