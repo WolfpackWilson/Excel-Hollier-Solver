@@ -11,13 +11,39 @@ Attribute VB_Exposed = False
 Attribute VB_TemplateDerived = False
 Attribute VB_Customizable = False
 
+''=======================================================
+'' Class:       PointerNode
+'' Desc:        Represents a pointer on the machine flow
+''              diagram and stores the relevant data.
+'' Called by:   StepNode (HollierProgram)
+'' Changes----------------------------------------------
+'' Date         Programmer      Change
+'' 5/21/1999    John Wilson     Written
+''=======================================================
+
+
+' ===========================================
+' VARIABLE DECLARATIONS
+' ===========================================
+
 Private pNextNode, pPrevNode As StepNode
 Private pValue, pDist As Integer
 
+
+' ===========================================
+' INITIALIZE CLASS VARIABLES
+' ===========================================
+
+' -------------------------------------------
+' initialize the class
+' -------------------------------------------
 Private Sub Class_Initialize()
     ' initialize in a different sub
 End Sub
 
+' -------------------------------------------
+' initialize all the the variables
+' -------------------------------------------
 Public Sub InitializeVariables(ByRef nextNode As Variant, ByRef prevNode As Variant, _
         ByVal value As Integer, ByVal dist As Integer)
     If (nextNode.Initialized) Then
@@ -35,6 +61,11 @@ Public Sub InitializeVariables(ByRef nextNode As Variant, ByRef prevNode As Vari
     pValue = value
     pDist = dist
 End Sub
+
+
+' ===========================================
+' GETTERS AND SETTERS
+' ===========================================
 
 Public Property Get PrevNode() As StepNode
     Set prevNode = pPrevNode

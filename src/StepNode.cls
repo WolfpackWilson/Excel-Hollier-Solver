@@ -11,12 +11,32 @@ Attribute VB_Exposed = False
 Attribute VB_TemplateDerived = False
 Attribute VB_Customizable = False
 
+''=======================================================
+'' Class:       StepNode
+'' Desc:        Stores data and methods for the program.
+''              It is also used to solve and display
+''              outputs for the program.
+'' Called by:   HollierProgram
+'' Changes----------------------------------------------
+'' Date         Programmer      Change
+'' 5/21/1999    John Wilson     Written
+''=======================================================
+
+
+' ===========================================
+' VARIABLE DECLARATIONS
+' ===========================================
+
+' -------------------------------------------
 ' node pointers
+' -------------------------------------------
 Private nextStep As Object
 Private prevStep As Object
 Private mthd2Step As Object
 
+' -------------------------------------------
 ' node Hollier values
+' -------------------------------------------
 Private pFromToValues() As Variant
 Private pFromTotals() As Double
 Private pToTotals() As Double
@@ -24,19 +44,35 @@ Private pFromToRatios() As Double
 Private pMachineNbs() As Variant
 Private pSolution As Variant
 Private pTableSize As Long
+Private pIn, pOut As Long
+
+' -------------------------------------------
+' flags
+' -------------------------------------------
 Private pInitialized As Boolean
 Private pHollier2 As Boolean
 
-' for the output
-Private pIn, pOut As Long
+' -------------------------------------------
+' output variables
+' -------------------------------------------
 Private pShape As Shape
 
+
+' ===========================================
+' INITIALIZE CLASS VARIABLES
+' ===========================================
+
+' -------------------------------------------
+' initialize the class
+' -------------------------------------------
 Private Sub Class_Initialize()
     ' initialize in a different sub
     pInitialized = False
 End Sub
 
+' -------------------------------------------
 ' extract table information to initalize variables
+' -------------------------------------------
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
         Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode, _
         Optional ByVal hollier2 As Boolean)
@@ -45,7 +81,7 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
         ReDim pMachineNbs(1 To pTableSize)
         
-        ' get current machine numbers
+        ''get current machine numbers
         For i = 1 To pTableSize
             pMachineNbs(i) = pFromToValues(1, i + 1)
         Next
@@ -57,7 +93,7 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         
         If IsMissing(MachineNbs) Then
             ReDim pMachineNbs(1 To pTableSize)
-            ' set current machine numbers
+            ''set current machine numbers
             For i = 1 To pTableSize
                 pMachineNbs(i) = i
             Next
@@ -81,6 +117,11 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         pHollier2 = hollier2
     End If
 End Sub
+
+
+' ===========================================
+' GETTERS AND SETTERS
+' ===========================================
 
 Public Property Get NextNode() As StepNode
     Set nextNode = nextStep
@@ -120,7 +161,13 @@ Public Property Let Shape(aShape As Shape)
 End Property
 
 
+' ===========================================
+' CLASS METHODS
+' ===========================================
+
+' -------------------------------------------
 ' remove the row and col of a two dimension array based on a 1-based position
+' -------------------------------------------
 Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Long)
     Dim arrSize, newArrSize As Long
     Dim newArr() As Variant
@@ -154,7 +201,9 @@ Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Long)
     RemoveRowCol = newArr
 End Function
 
+' -------------------------------------------
 ' total To and From column sums
+' -------------------------------------------
 Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
     Dim arrSize, newArrSize As Long
     arrSize = UBound(twoDimArr, 1) - LBound(twoDimArr, 1) + 1
@@ -165,6 +214,7 @@ Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
     currPosR = 1
     currPosC = 1
     
+    ''total froms and tos
     For i = LBound(twoDimArr, 1) To UBound(twoDimArr, 1)
         For j = LBound(twoDimArr, 2) To UBound(twoDimArr, 2)
             pFromTotals(currPosR) = pFromTotals(currPosR) + twoDimArr(i, j)
@@ -177,6 +227,7 @@ Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
         currPosR = currPosR + 1
     Next
     
+    ''total from/to ratio
     ReDim pFromToRatios(1 To arrSize)
     For i = LBound(pToTotals) To UBound(pToTotals)
         If (pToTotals(i) = 0) Then
@@ -187,7 +238,9 @@ Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
     Next
 End Sub
 
+' -------------------------------------------
 ' solves using a hollier method
+' -------------------------------------------
 Public Sub SolveHollier()
     Dim currPos, lowest, lowestPos As Long
     currPos = 1
@@ -198,10 +251,11 @@ Public Sub SolveHollier()
         lowest = pFromToRatios(LBound(pFromToRatios, 1))
     End If
     
-    ' find the lowest value/position
+    ''find the lowest value/position
     For i = LBound(pMachineNbs, 1) To UBound(pMachineNbs, 1)
         If (pHollier2) Then
-            If (pFromToRatios(i) > lowest) Then ' finding highest in this method
+            ''finding highest in this method
+            If (pFromToRatios(i) > lowest) Then
                 lowest = pFromToRatios(i)
                 lowestPos = currPos
             End If
@@ -216,7 +270,7 @@ Public Sub SolveHollier()
     pSolution = pMachineNbs(lowestPos)
     
     If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
-        ' get machine numbers for the next step
+        ''get machine numbers for the next step
         Dim newMachineNbs As Variant
         ReDim newMachineNbs(1 To UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1))
         currPos = 1
@@ -231,30 +285,33 @@ Public Sub SolveHollier()
         Dim newValues As Variant
         newValues = RemoveRowCol(pFromToValues, lowestPos)
         
+        ''repeat for subsequent steps
         Set nextStep = New StepNode
         nextStep.InitializeVariables newValues, False, newMachineNbs, Me, pHollier2
         nextStep.SolveHollier
     End If
 End Sub
 
+' -------------------------------------------
 ' create the solution and output it into Excel
+' -------------------------------------------
 Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boolean)
     Dim nodeArr() As PointerNode
-    ReDim nodeArr(1 To (pTableSize * pTableSize)) ' table size, ins/outs, not diagonals
+    ReDim nodeArr(1 To (pTableSize * pTableSize)) ''table size, ins/outs, not diagonals
     
     Dim count, currR, currC, inSeq, backtrack, totalMoves As Long
     Dim posDict, machineDict, stepNodeDict As Object
     Dim tmpStep As StepNode
     Dim outRange As Range
     
-    Set posDict = CreateObject("Scripting.Dictionary")      ' machine - position
-    Set machineDict = CreateObject("Scripting.Dictionary")    ' position - machine
-    Set stepNodeDict = CreateObject("Scripting.Dictionary") ' machine - StepNode
+    Set posDict = CreateObject("Scripting.Dictionary")          ''machine - position
+    Set machineDict = CreateObject("Scripting.Dictionary")      ''position - machine
+    Set stepNodeDict = CreateObject("Scripting.Dictionary")     ''machine - StepNode
     Set outRange = outputRange
     Set tmpStep = Me
     count = 1
     
-    ' fill dictionaries
+    ''fill dictionaries
     While (Not (tmpStep Is Nothing))
         posDict.Add tmpStep.Solution, count
         machineDict.Add count, tmpStep.Solution
@@ -263,7 +320,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         Set tmpStep = tmpStep.nextNode
     Wend
     
-    ' add table values as nodes
+    ''add table values as nodes
     count = 1
     currR = 1
     currC = 1
@@ -277,7 +334,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
                 Dim ptrNode As PointerNode
                 Dim value, dist As Long
                 
-                ' add pointer node
+                ''add pointer node
                 Set ptrNode = New PointerNode
                 Set prevSNode = stepNodeDict(pMachineNbs(currR))
                 Set nextSNode = stepNodeDict(pMachineNbs(currC))
@@ -287,7 +344,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
                 ptrNode.InitializeVariables nextSNode, prevSNode, value, dist
                 Set nodeArr(count) = ptrNode
                 
-                ' update moves
+                ''update moves
                 totalMoves = totalMoves + value
                 If (dist = 1) Then
                     inSeq = inSeq + value
@@ -295,7 +352,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
                     backtrack = backtrack + value
                 End If
                 
-                ' update step node in/out moves
+                ''update step node in/out moves
                 If (Not (prevSNode Is Nothing)) Then
                     prevSNode.OutValue = prevSNode.OutValue + value
                 End If
@@ -312,7 +369,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         currR = currR + 1
     Next
     
-    ' add extra ins and outs
+    ''add extra ins and outs
     For Each machine In pMachineNbs
         Dim step As StepNode
         Dim ptrNode2 As PointerNode
@@ -322,16 +379,19 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         Set step = stepNodeDict(machine)
         Set ptrNode2 = New PointerNode
         value2 = step.OutValue - step.InValue
-        dist2 = 0 ' this is done to separate from 1 distances
+        dist2 = 0 ''this is done to separate from 1-value distances
         
-        If (value2 > 0) Then ' parts added
+        ''parts added
+        If (value2 > 0) Then
             Set nextSNode2 = step
             Set prevSNode2 = New StepNode
-        ElseIf (value2 < 0) Then ' parts exit
+        ''parts exit
+        ElseIf (value2 < 0) Then
             value2 = -value2
             Set nextSNode2 = New StepNode
             Set prevSNode2 = step
-        Else ' value2 = 0; no parts in/out
+        ''value2 = 0; no parts in/out
+        Else
             Set nextSNode2 = step
             Set prevSNode2 = step
         End If
@@ -342,12 +402,12 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         count = count + 1
     Next
     
-    ' create tables
+    ''create tables -----------------------
     Dim nbRows As Long
     Dim table(), tableMoves() As Variant
     Dim tableRange As Range
     
-    ' create to/from table
+    ''create to/from table
     nbRows = UBound(pFromToValues) - LBound(pFromToValues) + 3
     ReDim table(1 To nbRows, 1 To nbRows)
     
@@ -383,7 +443,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     tableRange.value = table
     formatTable tableRange
     
-    ' hollier method 2 add on
+    ''hollier method 2 add on
     If (pHollier2) Then
         ReDim table(1 To nbRows, 1 To 1)
         table(1, 1) = "From/To Ratios"
@@ -406,7 +466,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     
     Set outRange = outRange.Offset(nbRows + 1, 0)
     
-    ' create comparison table
+    ''create comparison table
     If (Not (pHollier2)) Then
         ReDim tableMoves(1 To 2, 1 To 8)
         tableMoves(1, 1) = "Hollier Method"
@@ -440,6 +500,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         tableRange.Font.Bold = False
     End If
     
+    ''more formats for the comparison table
     With tableRange
         Range(.Cells(1, 1), .Cells(1, 2)).Select
         Selection.Merge
@@ -468,6 +529,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         Set outRange = outRange.Offset(5, 0)
     End If
     
+    ''create the machine flow diagram
     If (createFlowDia) Then
         Dim flowChart As Variant
         Set flowChart = makeFlowChart(nodeArr, stepNodeDict, posDict)
@@ -486,6 +548,9 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     outRange.Offset(-(6 + nbRows), 0).Select
 End Sub
 
+' -------------------------------------------
+' formats the table
+' -------------------------------------------
 Private Sub formatTable(ByRef tableRange As Range)
     With tableRange
         .HorizontalAlignment = xlCenter
@@ -542,7 +607,9 @@ Private Sub formatTable(ByRef tableRange As Range)
     End With
 End Sub
 
+' -------------------------------------------
 ' creates a flow chart of the part manufacturing movements
+' -------------------------------------------
 Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDict As Variant, _
         ByRef posDict As Variant)
     Dim shapeList As Object
@@ -555,18 +622,18 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
     inToPt = 72
     count = 1
     
-    ' format layout
+    ''format layout
     sPosLeft = 11 * 1 / 12 * inToPt
     sPosTop = 3 * inToPt
     heightMod = 10
     fontSize = 10
     
-    ' format machine nodes
+    ''format machine nodes
     sPosWidth = 0.25 * inToPt
     sPosHeight = sPosWidth
     distMod = 1
     
-    ' draw and add machine nodes
+    ''draw and add machine nodes
     For Each machine In stepNodeDict
         Set currShape = ActiveSheet.Shapes.AddShape(msoShapeFlowchartConnector, _
                 sPosLeft * (distMod + 1), sPosTop, sPosWidth, sPosHeight)
@@ -620,13 +687,15 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
         distMod = distMod + 1
     Next
     
-    ' draw and add pointer nodes
+    ''draw and add pointer nodes
     Dim sPosLineTop, sPosTextBoxLeft, sPosTextBoxTop As Double
     sPosLineTop = sPosTop + sPosHeight / 2
     
     For Each pointer In pointers
         If (pointer.value <> 0) Then
-            If (pointer.dist > 1 Or pointer.dist < 0) Then ' curved pointer
+        
+            ''curved pointer
+            If (pointer.dist > 1 Or pointer.dist < 0) Then
                 Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorCurve, _
                 sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
                 
@@ -651,7 +720,9 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
                 sPosTextBoxTop = sPosLineTop - heightMod * (pointer.dist + 1)
                 Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                         sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
-            ElseIf (pointer.dist = 1) Then ' straight pointer
+                        
+            ''straight pointer
+            ElseIf (pointer.dist = 1) Then
                 Set currShape = ActiveSheet.Shapes.AddConnector(msoConnectorStraight, _
                         sPosLeft, sPosLineTop, sPosLeft * (distMod + 1), sPosLineTop)
                         
@@ -666,9 +737,15 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
                         sPosLeft / 2 - sPosWidth / 2
                 Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                         sPosTextBoxLeft, sPosLineTop - sPosHeight / 1.25, sPosWidth * 2, sPosHeight)
-            Else ' in/out pointer
-                If (pointer.nextNode Is Nothing) Then ' out pointer
-                    If (posDict(pointer.prevNode.Solution) = posDict.count) Then ' last
+            
+            ''in/out pointer
+            Else
+                
+                ''out pointer
+                If (pointer.nextNode Is Nothing) Then
+                    
+                    ''final out
+                    If (posDict(pointer.prevNode.Solution) = posDict.count) Then
                     
                         sPosTextBoxLeft = sPosLeft * (posDict.count + 1.75)
                         Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
@@ -684,7 +761,8 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
                             .ShapeStyle = msoLineStylePreset1
                         End With
                     
-                    Else ' regular out
+                    ''regular out
+                    Else
                     
                         sPosTextBoxLeft = sPosLeft * (posDict(pointer.prevNode.Solution) + 1) - _
                                 sPosWidth / 2
@@ -703,9 +781,12 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
                         End With
                         
                     End If
-                Else ' in pointer
                 
-                    If (posDict(pointer.nextNode.Solution) = 1) Then ' first
+                ''in pointer
+                Else
+                
+                    '' first in
+                    If (posDict(pointer.nextNode.Solution) = 1) Then
                         Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                                 sPosLeft, sPosLineTop - sPosHeight / 2, sPosWidth * 2, sPosHeight)
                                 
@@ -718,9 +799,9 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
                             .ConnectorFormat.EndConnect pointer.nextNode.Shape, 3
                             .ShapeStyle = msoLineStylePreset1
                         End With
-                        
-                    Else ' regular in
-                    
+                       
+                    ''regular in
+                    Else
                         sPosTextBoxLeft = sPosLeft * (posDict(pointer.nextNode.Solution) + 1) - _
                                 sPosWidth / 2
                         sPosTextBoxTop = sPosLineTop + heightMod * (posDict.count)
@@ -736,12 +817,11 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
                             .ConnectorFormat.EndConnect pointer.nextNode.Shape, 5
                             .ShapeStyle = msoLineStylePreset1
                         End With
-                        
                     End If
                 End If
             End If
             
-            ' pretty it up
+            ''pretty it up
             With currTextBox
                 .Fill.Visible = msoFalse
                 .Line.Visible = msoFalse
@@ -779,6 +859,6 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
         End If
     Next
     
-    ' group shapes
+    ''group shapes
     Set makeFlowChart = ActiveSheet.Shapes.Range(shapeList.ToArray).Group
 End Function
