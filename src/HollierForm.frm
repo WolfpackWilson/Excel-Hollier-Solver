@@ -91,9 +91,9 @@ End Sub
 ' -------------------------------------------
 Private Sub CommandButton3_Click()
     MsgBox ("Input Range:" & vbTab & "Select your data" & vbLf _
-           & "Machine Labels:" & vbTab & "Machines numbers are included" & vbLf & vbLf _
+           & "Machine Labels:" & vbTab & "Machine numbers are included" & vbLf & vbLf _
            & "Output Range:" & vbTab & "Select the output cell" & vbLf _
-           & "New Worksheet:" & vbTab & "Output onto a ply worksheet" & vbLf & vbLf _
+           & "New Worksheet:" & vbTab & "Output onto a new worksheet" & vbLf & vbLf _
            & "Hollier Method 2:" & vbTab & "Also solve with Hollier method 2" & vbLf _
            & "Flow Diagram:" & vbTab & "Create a machine flow diagram from the results")
 End Sub
