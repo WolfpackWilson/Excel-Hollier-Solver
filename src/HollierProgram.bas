@@ -1,4 +1,4 @@
-Attribute VB_Name = "Main"
+Attribute VB_Name = "HollierProgram"
 
 ''=======================================================
 '' Program:     HollierProgram
@@ -20,7 +20,7 @@ End Sub
 ' -------------------------------------------
 ' begin solving for Hollier
 ' -------------------------------------------
-Sub HollierMethod()
+Sub HollierSolver()
     Dim Solver As StepNode
     Dim tableValues() As Variant
     Dim outputRange As Range
@@ -50,7 +50,7 @@ Sub HollierMethod()
             Wend
         End If
         
-        Sheets.Add.Name = shtName
+        Sheets.Add(After:=Sheets(Sheets.count)).Name = shtName
         Set outputRange = Range("B2")
     End If
     

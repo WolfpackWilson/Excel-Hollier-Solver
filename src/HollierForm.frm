@@ -60,13 +60,13 @@ Private Sub CommandButton1_Click()
                     And Not (OutputCell Is Nothing)) Then
                 Set OutputCell = OutputCell.Cells(1, 1)
                 Me.Hide
-                Main.HollierMethod
+                HollierProgram.HollierSolver
                 Unload Me
                 
             ''use a new sheet
             ElseIf (OptionButton2.value = True) Then
                 Me.Hide
-                Main.HollierMethod
+                HollierProgram.HollierSolver
                 Unload Me
             Else
                 MsgBox ("Something is wrong with you output range. Please try reselecting it.")
