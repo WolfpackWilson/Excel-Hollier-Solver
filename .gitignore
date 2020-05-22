@@ -1,5 +1,5 @@
 # Excel
-Sheet1.cls
+Sheet*.cls
 ThisWorkbook.cls
 *~$*
 *.xls*

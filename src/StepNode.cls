@@ -559,7 +559,7 @@ count = 1
 ' format layout
 sPosLeft = 11 * 1 / 12 * inToPt
 sPosTop = 3 * inToPt
-heightMod = 20
+heightMod = 10
 fontSize = 10
 
 ' format machine nodes
