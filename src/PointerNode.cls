@@ -15,39 +15,39 @@ Private pNextNode, pPrevNode As StepNode
 Private pValue, pDist As Integer
 
 Private Sub Class_Initialize()
-' initialize in a different sub
+    ' initialize in a different sub
 End Sub
 
 Public Sub InitializeVariables(ByRef nextNode As Variant, ByRef prevNode As Variant, _
         ByVal value As Integer, ByVal dist As Integer)
-If (nextNode.Initialized) Then
-    Set pNextNode = nextNode
-Else
-    Set pNextNode = Nothing
-End If
-
-If (prevNode.Initialized) Then
-    Set pPrevNode = prevNode
-Else
-    Set pPrevNode = Nothing
-End If
-
-pValue = value
-pDist = dist
+    If (nextNode.Initialized) Then
+        Set pNextNode = nextNode
+    Else
+        Set pNextNode = Nothing
+    End If
+    
+    If (prevNode.Initialized) Then
+        Set pPrevNode = prevNode
+    Else
+        Set pPrevNode = Nothing
+    End If
+    
+    pValue = value
+    pDist = dist
 End Sub
 
 Public Property Get PrevNode() As StepNode
-Set prevNode = pPrevNode
+    Set prevNode = pPrevNode
 End Property
 
 Public Property Get NextNode() As StepNode
-Set nextNode = pNextNode
+    Set nextNode = pNextNode
 End Property
 
 Public Property Get value() As Integer
-value = pValue
+    value = pValue
 End Property
 
 Public Property Get dist() As Integer
-dist = pDist
+    dist = pDist
 End Property

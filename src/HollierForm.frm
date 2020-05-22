@@ -22,65 +22,65 @@ Public OutputCell As Range
 
 ' OK button
 Private Sub CommandButton1_Click()
-If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
-    If (OptionButton1.Value = True And getRange(RefEdit2.Text, OutputCell) And Not (OutputCell Is Nothing)) Then
-        Dim arr1Length, arr2Length As Integer
-        Dim arrRange() As Variant
-        
-        arrRange = InputRange
-        arr1Length = UBound(arrRange, 1) - LBound(arrRange, 1)
-        arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
-        
-        If (arr1Length = arr2Length) Then
-            Set OutputCell = OutputCell.Cells(1, 1)
+    If (getRange(RefEdit1.Text, InputRange) And Not (InputRange Is Nothing)) Then
+        If (OptionButton1.value = True And getRange(RefEdit2.Text, OutputCell) And Not (OutputCell Is Nothing)) Then
+            Dim arr1Length, arr2Length As Integer
+            Dim arrRange() As Variant
+            
+            arrRange = InputRange
+            arr1Length = UBound(arrRange, 1) - LBound(arrRange, 1)
+            arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
+            
+            If (arr1Length = arr2Length) Then
+                Set OutputCell = OutputCell.Cells(1, 1)
+                Me.Hide
+                Main.HollierMethod
+                Unload Me
+            Else
+                MsgBox ("Please make sure your input has the same number of rows and columns.")
+            End If
+        ElseIf (OptionButton2.value = True) Then
             Me.Hide
             Main.HollierMethod
             Unload Me
         Else
-            MsgBox ("Please make sure your input has the same number of rows and columns.")
+            MsgBox ("Something is wrong with you output range. Please try reselecting it.")
         End If
-    ElseIf (OptionButton2.Value = True) Then
-        Me.Hide
-        Main.HollierMethod
-        Unload Me
     Else
-        MsgBox ("Something is wrong with you output range. Please try reselecting it.")
+        MsgBox ("Something is wrong with your input range. Please try reselecting it.")
     End If
-Else
-    MsgBox ("Something is wrong with your input range. Please try reselecting it.")
-End If
 End Sub
 
 ' Cancel button
 Private Sub CommandButton2_Click()
-Unload Me
+    Unload Me
 End Sub
 
 ' Help button
 Private Sub CommandButton3_Click()
-MsgBox ("Input Range:" & vbTab & "Select your data" & vbLf _
-       & "Machine Labels:" & vbTab & "Check if machines numbers are included" & vbLf & vbLf _
-       & "Output Range:" & vbTab & "Select the output cell" & vbLf _
-       & "New Worksheet:" & vbTab & "Output onto a ply worksheet" & vbLf _
-       & "Flow Diagram:" & vbTab & "Create a flow chart from the results")
+    MsgBox ("Input Range:" & vbTab & "Select your data" & vbLf _
+           & "Machine Labels:" & vbTab & "Check if machines numbers are included" & vbLf & vbLf _
+           & "Output Range:" & vbTab & "Select the output cell" & vbLf _
+           & "New Worksheet:" & vbTab & "Output onto a ply worksheet" & vbLf _
+           & "Flow Diagram:" & vbTab & "Create a flow chart from the results")
 End Sub
 
 ' Output Range option
 Private Sub OptionButton1_Click()
-RefEdit2.Enabled = True
-RefEdit2.BackColor = &H80000005
+    RefEdit2.Enabled = True
+    RefEdit2.BackColor = &H80000005
 End Sub
 
 ' New Worksheet option
 Private Sub OptionButton2_Click()
-RefEdit2.Enabled = False
-RefEdit2.BackColor = &H80000016
+    RefEdit2.Enabled = False
+    RefEdit2.BackColor = &H80000016
 End Sub
 
 ' Checks refedit and converts to range if valid
 Function getRange(RefEditText As String, myRange As Range) As Boolean
-On Error Resume Next
-Set myRange = Range(RefEditText)
-On Error GoTo 0
-getRange = Not myRange Is Nothing
+    On Error Resume Next
+    Set myRange = Range(RefEditText)
+    On Error GoTo 0
+    getRange = Not myRange Is Nothing
 End Function
