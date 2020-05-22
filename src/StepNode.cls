@@ -549,7 +549,7 @@ Private Function makeFlowChart(ByRef pointers() As PointerNode, ByRef stepNodeDi
 Dim shapeList As Object
 Dim currShape, currTextBox As Shape
 Dim sPosLeft, sPosTop, sPosWidth, sPosHeight, distHor, distVert As Double
-Dim inToPt, distMod As Double
+Dim inToPt, distMod, heightMod As Double
 Dim count, fontSize As Long
 
 Set shapeList = CreateObject("System.Collections.ArrayList")
@@ -558,7 +558,8 @@ count = 1
 
 ' format layout
 sPosLeft = 11 * 1 / 12 * inToPt
-sPosTop = 3 * inToPt '8.5 * 1 / 8 * inToPt
+sPosTop = 3 * inToPt
+heightMod = 20
 fontSize = 10
 
 ' format machine nodes
@@ -635,20 +636,20 @@ For Each pointer In pointers
                 If (pointer.dist > 0) Then
                     .ConnectorFormat.BeginConnect pointer.prevNode.Shape, 8
                     .ConnectorFormat.EndConnect pointer.nextNode.Shape, 2
-                    .Adjustments.Item(1) = 10 * pointer.dist
+                    .Adjustments.Item(1) = heightMod * pointer.dist
                     sPosTextBoxLeft = sPosLeft * (posDict(pointer.prevNode.Solution) + _
                             pointer.dist / 2 + 1) - sPosWidth / 2
                 Else
                     .ConnectorFormat.BeginConnect pointer.prevNode.Shape, 4
                     .ConnectorFormat.EndConnect pointer.nextNode.Shape, 6
-                    .Adjustments.Item(1) = 10 * (-pointer.dist)
+                    .Adjustments.Item(1) = heightMod * (-pointer.dist)
                     sPosTextBoxLeft = sPosLeft * (posDict(pointer.nextNode.Solution) + _
                             -pointer.dist / 2 + 1) - sPosWidth / 2
                 End If
                 .ShapeStyle = msoLineStylePreset1
             End With
             
-            sPosTextBoxTop = sPosLineTop - 10 * (pointer.dist + 1)
+            sPosTextBoxTop = sPosLineTop - heightMod * (pointer.dist + 1)
             Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                     sPosTextBoxLeft, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
         ElseIf (pointer.dist = 1) Then ' straight pointer
@@ -688,7 +689,7 @@ For Each pointer In pointers
                 
                     sPosTextBoxLeft = sPosLeft * (posDict(pointer.prevNode.Solution) + 1) - _
                             sPosWidth / 2
-                    sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
+                    sPosTextBoxTop = sPosLineTop + heightMod * (posDict.count)
                     Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                             sPosTextBoxLeft + sPosLeft / 4, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
                             
@@ -723,7 +724,7 @@ For Each pointer In pointers
                 
                     sPosTextBoxLeft = sPosLeft * (posDict(pointer.nextNode.Solution) + 1) - _
                             sPosWidth / 2
-                    sPosTextBoxTop = sPosLineTop + 10 * (posDict.count)
+                    sPosTextBoxTop = sPosLineTop + heightMod * (posDict.count)
                     Set currTextBox = ActiveSheet.Shapes.AddTextbox(msoTextOrientationHorizontal, _
                             sPosTextBoxLeft - sPosLeft / 4, sPosTextBoxTop, sPosWidth * 2, sPosHeight)
                             

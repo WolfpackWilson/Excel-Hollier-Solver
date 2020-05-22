@@ -31,6 +31,7 @@ Else
         While (exists)
             shtName = "Hollier Output " & i
             exists = WorksheetExists(shtName)
+            i = i + 1
         Wend
     End If
     
