@@ -23,12 +23,12 @@ Private pToTotals() As Double
 Private pFromToRatios() As Double
 Private pMachineNbs() As Variant
 Private pSolution As Variant
-Private pTableSize As Integer
+Private pTableSize As Long
 Private pInitialized As Boolean
 Private pHollier2 As Boolean
 
 ' for the output
-Private pIn, pOut As Integer
+Private pIn, pOut As Long
 Private pShape As Shape
 
 Private Sub Class_Initialize()
@@ -98,17 +98,17 @@ Public Property Get Initialized() As Boolean
 Initialized = pInitialized
 End Property
 
-Public Property Get InValue() As Integer
+Public Property Get InValue() As Long
 InValue = pIn
 End Property
-Public Property Let InValue(value As Integer)
+Public Property Let InValue(value As Long)
 pIn = value
 End Property
 
-Public Property Get OutValue() As Integer
+Public Property Get OutValue() As Long
 OutValue = pOut
 End Property
-Public Property Let OutValue(value As Integer)
+Public Property Let OutValue(value As Long)
 pOut = value
 End Property
 
@@ -121,13 +121,13 @@ End Property
 
 
 ' remove the row and col of a two dimension array based on a 1-based position
-Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Integer)
-Dim arrSize, newArrSize As Integer
+Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Long)
+Dim arrSize, newArrSize As Long
 Dim newArr() As Variant
 arrSize = UBound(twoDimArr, 1) - LBound(twoDimArr, 1) + 1
 
 ReDim newArr(1 To (arrSize - 1), 1 To (arrSize - 1))
-Dim currPosR, currPosC, newArrR, newArrC As Integer
+Dim currPosR, currPosC, newArrR, newArrC As Long
 currPosR = 1
 currPosC = 1
 newArrR = 1
@@ -156,12 +156,12 @@ End Function
 
 ' total To and From column sums
 Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
-Dim arrSize, newArrSize As Integer
+Dim arrSize, newArrSize As Long
 arrSize = UBound(twoDimArr, 1) - LBound(twoDimArr, 1) + 1
 
 ReDim pFromTotals(1 To arrSize)
 ReDim pToTotals(1 To arrSize)
-Dim currPosR, currPosC As Integer
+Dim currPosR, currPosC As Long
 currPosR = 1
 currPosC = 1
 
@@ -180,7 +180,7 @@ Next
 ReDim pFromToRatios(1 To arrSize)
 For i = LBound(pToTotals) To UBound(pToTotals)
     If (pToTotals(i) = 0) Then
-        pFromToRatios(i) = (2 ^ 15) - 1
+        pFromToRatios(i) = 2147483647
     Else
         pFromToRatios(i) = pFromTotals(i) / pToTotals(i)
     End If
@@ -190,7 +190,7 @@ End Sub
 
 ' solves using a hollier method
 Public Sub SolveHollier()
-Dim currPos, lowest, lowestPos As Integer
+Dim currPos, lowest, lowestPos As Long
 currPos = 1
 lowest = pToTotals(LBound(pToTotals, 1))
 lowestPos = currPos
@@ -243,7 +243,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
 Dim nodeArr() As PointerNode
 ReDim nodeArr(1 To (pTableSize * pTableSize)) ' table size, ins/outs, not diagonals
 
-Dim count, currR, currC, inSeq, backtrack, totalMoves As Integer
+Dim count, currR, currC, inSeq, backtrack, totalMoves As Long
 Dim posDict, machineDict, stepNodeDict As Object
 Dim tmpStep As StepNode
 Dim outRange As Range
@@ -276,7 +276,7 @@ For i = LBound(pFromToValues, 1) To UBound(pFromToValues, 1)
         If (Not (currR = currC)) Then
             Dim nextSNode, prevSNode As StepNode
             Dim ptrNode As PointerNode
-            Dim value, dist As Integer
+            Dim value, dist As Long
             
             ' add pointer node
             Set ptrNode = New PointerNode
@@ -318,7 +318,7 @@ For Each machine In pMachineNbs
     Dim step As StepNode
     Dim ptrNode2 As PointerNode
     Dim nextSNode2, prevSNode2 As StepNode
-    Dim value2, dist2 As Integer
+    Dim value2, dist2 As Long
     
     Set step = stepNodeDict(machine)
     Set ptrNode2 = New PointerNode
@@ -391,7 +391,7 @@ If (pHollier2) Then
     table(UBound(table, 1), 1) = ""
     
     For i = 2 To UBound(table, 1) - 1
-        If (pFromToRatios(i - 1) = (2 ^ 15) - 1) Then
+        If (pFromToRatios(i - 1) = 2147483647) Then
             table(i, 1) = "Infinite"
         Else
             table(i, 1) = Round(pFromToRatios(i - 1), 2)
@@ -550,7 +550,7 @@ Dim shapeList As Object
 Dim currShape, currTextBox As Shape
 Dim sPosLeft, sPosTop, sPosWidth, sPosHeight, distHor, distVert As Double
 Dim inToPt, distMod As Double
-Dim count, fontSize As Integer
+Dim count, fontSize As Long
 
 Set shapeList = CreateObject("System.Collections.ArrayList")
 inToPt = 72
