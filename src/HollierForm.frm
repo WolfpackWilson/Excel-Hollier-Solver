@@ -6,7 +6,6 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} HollierForm
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   7260
-   StartUpPosition =   2  'CenterScreen
    TypeInfoVer     =   62
 End
 Attribute VB_Name = "HollierForm"
@@ -35,6 +34,16 @@ Attribute VB_Customizable = False
 
 Public InputRange As Range
 Public OutputCell As Range
+
+
+' ===========================================
+' FORM INITIALIZATION
+' ===========================================
+
+Private Sub UserForm_Initialize()
+    Me.Top = Application.Top + (Application.UsableHeight / 2) - (Me.height / 2)
+    Me.Left = Application.Left + (Application.UsableWidth / 2) - (Me.Width / 2)
+End Sub
 
 
 ' ===========================================
