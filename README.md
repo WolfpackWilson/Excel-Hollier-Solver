@@ -1,11 +1,11 @@
 
 # Excel Hollier Solver
-The Hollier Solver tool is an Excel plugin that takes a from-to table and solves it using Hollier's first method.
+The Hollier Solver tool is an Excel plugin that takes a from-to table and solves it using Hollier Method 1.
 
 |Contents|
 |---|
 |1. [Introduction](#introduction)|
-|&nbsp;&nbsp;&nbsp;1.1 [What are Hollier's Methods?](#what-are-hollier's-methods)|
+|&nbsp;&nbsp;&nbsp;1.1 [What are Hollier Methods?](#what-are-hollier-methods)|
 |&nbsp;&nbsp;&nbsp;1.2 [Hollier Method 1 Algorithm](#hollier-method-1-algorithm)|
 |2. [Installation and Use](#installation-and-use)|
 |&nbsp;&nbsp;&nbsp;2.1 [How to Use the Solver](#how-to-use-the-solver)|
@@ -15,8 +15,8 @@ The Hollier Solver tool is an Excel plugin that takes a from-to table and solves
 
 # Introduction
 
-## What are Hollier's Methods?
-Hollier's methods are algorithms used to order machines for minimizing the backtracking of parts. In the context of manufacturing, it is implemented after separating components of an assembly into part families, splitting them into machine groups using rank order clustering, and then generating from-to tables for each group.
+## What are Hollier Methods?
+Hollier methods are algorithms used to order machines to minimize the backtracking of parts. In the context of manufacturing, it is implemented after separating components of an assembly into part families, splitting them into machine groups using rank order clustering, and finally generating from-to tables of each group.
 
 ## Hollier Method 1 Algorithm
 1. Develop a from-to chart based on part routes. 
@@ -33,14 +33,14 @@ The quickest way to run the program is to use the macro-enabled template file, `
 
 ## How to Use the Solver
 Use of the Hollier solver is simple:
-1. Add a from-to table to the worksheet `Hollier Solver`.
+1. Add a from-to table to the worksheet called `Hollier Solver`.
 1. Click the `Run Hollier Solver` button and enter the following:
-    - Input Range: Select the from-to table excluding any sum columns.
-    - Machine Labels: If the machine labels were included in the input range, check this option.
-    - Output Range: Select a cell for the program to output to.
-    - New Worksheet: The program will output to a new worksheet.
-    - Holler Method 2: Select this option if to solve using Hollier Method 2 as well.
-    - Flow Diagram: Select this option to generate a flow diagram for each method.
+    - *Input Range*: Select the from-to table excluding any sum columns.
+    - *Machine Labels*: If the machine labels were included in the input range, check this option.
+    - *Output Range*: Select a cell for the program to output to.
+    - *New Worksheet*: The program will output to a new worksheet.
+    - *Holler Method 2*: Select this option if to solve using Hollier Method 2 as well.
+    - *Flow Diagram*: Select this option to generate a flow diagram for each method.
 1. Press OK to run the program.
 
 ## How to Add the Solver to the Toolbar
