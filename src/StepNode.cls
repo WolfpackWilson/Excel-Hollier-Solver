@@ -22,6 +22,7 @@ Attribute VB_Customizable = False
 '' 5/21/1999    John Wilson     Written
 ''=======================================================
 
+Option Base 1
 
 ' ===========================================
 ' VARIABLE DECLARATIONS
@@ -39,13 +40,22 @@ Private midStep As Object
 ' node Hollier values
 ' -------------------------------------------
 Private pFromToValues() As Variant
-Private pFromTotals() As Double
-Private pToTotals() As Double
+Private pFromTotals() As Variant
+Private pToTotals() As Variant
 Private pFromToRatios() As Double
 Private pMachineNbs() As Variant
 Private pSolution As Variant
 Private pTableSize As Long
 Private pIn, pOut As Long
+
+' -------------------------------------------
+' templates
+' -------------------------------------------
+Private Type sumsAndRatios
+    fromTotals As Variant
+    toTotals As Variant
+    fromToRatios As Variant
+End Type
 
 ' -------------------------------------------
 ' flags
@@ -104,7 +114,19 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         End If
     End If
     
-    sumFromsAndTos pFromToValues
+    ''set sums and ratios
+    Dim sumsRatios As sumsAndRatios
+    sumsRatios = sumFromsAndTos(pFromToValues)
+    With sumsRatios
+        ReDim pFromToRatios(1 To UBound(.fromToRatios))
+        ReDim pFromTotals(1 To UBound(.fromTotals))
+        ReDim pToTotals(1 To UBound(.toTotals))
+        
+        pFromToRatios = .fromToRatios
+        pFromTotals = .fromTotals
+        pToTotals = .toTotals
+    End With
+    
     pInitialized = True
     pIn = 0
     pOut = 0
@@ -209,6 +231,18 @@ Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Long)
     Dim newArr() As Variant
     arrSize = UBound(twoDimArr, 1) - LBound(twoDimArr, 1) + 1
     
+    If (arrSize - 1 <= 1) Then
+        ReDim newArr(1, 1)
+        If (posNb = 1) Then
+            newArr(1, 1) = twoDimArr(2, 2)
+        Else
+            newArr(1, 1) = twoDimArr(1, 1)
+        End If
+        
+        RemoveRowCol = newArr
+        Exit Function
+    End If
+    
     ReDim newArr(1 To (arrSize - 1), 1 To (arrSize - 1))
     Dim currPosR, currPosC, newArrR, newArrC As Long
     currPosR = 1
@@ -240,12 +274,13 @@ End Function
 ' -------------------------------------------
 ' total To and From column sums
 ' -------------------------------------------
-Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
+Private Function sumFromsAndTos(ByRef twoDimArr As Variant) As sumsAndRatios
     Dim arrSize, newArrSize As Long
     arrSize = UBound(twoDimArr, 1) - LBound(twoDimArr, 1) + 1
     
-    ReDim pFromTotals(1 To arrSize)
-    ReDim pToTotals(1 To arrSize)
+    Dim fromTotals(), toTotals(), fromToRatios() As Double
+    ReDim fromTotals(1 To arrSize)
+    ReDim toTotals(1 To arrSize)
     Dim currPosR, currPosC As Long
     currPosR = 1
     currPosC = 1
@@ -253,8 +288,8 @@ Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
     ''total froms and tos
     For i = LBound(twoDimArr, 1) To UBound(twoDimArr, 1)
         For j = LBound(twoDimArr, 2) To UBound(twoDimArr, 2)
-            pFromTotals(currPosR) = pFromTotals(currPosR) + twoDimArr(i, j)
-            pToTotals(currPosC) = pToTotals(currPosC) + twoDimArr(i, j)
+            fromTotals(currPosR) = fromTotals(currPosR) + twoDimArr(i, j)
+            toTotals(currPosC) = toTotals(currPosC) + twoDimArr(i, j)
             
             currPosC = currPosC + 1
         Next
@@ -264,15 +299,24 @@ Private Sub sumFromsAndTos(ByRef twoDimArr As Variant)
     Next
     
     ''total from/to ratio
-    ReDim pFromToRatios(1 To arrSize)
-    For i = LBound(pToTotals) To UBound(pToTotals)
-        If (pToTotals(i) = 0) Then
-            pFromToRatios(i) = 2147483647
+    ReDim fromToRatios(1 To arrSize)
+    For i = LBound(toTotals) To UBound(toTotals)
+        If (toTotals(i) = 0) Then
+            fromToRatios(i) = 2147483647
         Else
-            pFromToRatios(i) = pFromTotals(i) / pToTotals(i)
+            fromToRatios(i) = fromTotals(i) / toTotals(i)
         End If
     Next
-End Sub
+    
+    Dim answer As sumsAndRatios
+    With answer
+        .fromToRatios = fromToRatios
+        .fromTotals = fromTotals
+        .toTotals = toTotals
+    End With
+    
+    sumFromsAndTos = answer
+End Function
 
 ' -------------------------------------------
 ' solves using a hollier method
@@ -283,6 +327,7 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
     Dim minTo, minTo2, minToPos, minToPos2 As Long
     Dim minFrom, minFrom2, minFromPos, minFromPos2 As Long
     Dim currPos, high, highPos As Long
+    Dim sumsRatios As sumsAndRatios
     
     If (IsMissing(toTotals)) Then
         toTotals = pToTotals
@@ -306,9 +351,9 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
     minTo2 = toTotals(LBound(toTotals, 1))
     minToPos2 = currPos
     
-    minFrom = toTotals(LBound(fromTotals, 1))
+    minFrom = fromTotals(LBound(fromTotals, 1))
     minFromPos = currPos
-    minFrom2 = toTotals(LBound(fromTotals, 1))
+    minFrom2 = fromTotals(LBound(fromTotals, 1))
     minFromPos2 = currPos
     
     ''hollier 2 variables
@@ -375,6 +420,8 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
                     pSolution = machineNbs(minToPos)
                     tmpMachineNbs = Remove(machineNbs, minToPos)
                     tmpFromToValues = RemoveRowCol(tmpFromToValues, minToPos)
+                    
+                    If (UBound(tmpMachineNbs) = 1) Then GoTo SkipFromRemovals
                 ElseIf (minToPos = minFromPos) Then
                     Dim tempStep1 As StepNode
                     Set tempStep1 = New StepNode
@@ -425,11 +472,15 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
             End With
             
 SkipLastStep:
-            toTotals = Remove(toTotals, minFromPos)
-            fromTotals = Remove(fromTotals, minFromPos)
             fromToValues = RemoveRowCol(fromToValues, minFromPos)
-            fromToRatios = Remove(fromToRatios, minFromPos)
             machineNbs = Remove(machineNbs, minFromPos)
+            sumsRatios = sumFromsAndTos(fromToValues)
+            
+            With sumsRatios
+                fromTotals = .fromTotals
+                toTotals = .toTotals
+                fromToRatios = .fromToRatios
+            End With
             
             If (Not (minTo = minFrom And minToPos <> minFromPos)) Then
                 SolveHollier toTotals, fromTotals, fromToValues, fromToRatios, machineNbs
@@ -438,6 +489,7 @@ SkipLastStep:
        End If
     End If
     
+SkipFromRemovals:
     'remove table rows/columns for the next step
     Dim sPos As Integer
     sPos = 1
@@ -445,15 +497,27 @@ SkipLastStep:
     For i = 1 To UBound(machineNbs)
         If (machineNbs(i) = pSolution) Then
             sPos = i
+            Exit For
         End If
     Next
     
     If (UBound(toTotals) <> LBound(toTotals)) Then
-        toTotals = Remove(toTotals, sPos)
-        fromTotals = Remove(fromTotals, sPos)
         fromToValues = RemoveRowCol(fromToValues, sPos)
-        fromToRatios = Remove(fromToRatios, sPos)
         machineNbs = Remove(machineNbs, sPos)
+        
+        If (Not pHollier2) Then
+            sumsRatios = sumFromsAndTos(fromToValues)
+            
+            With sumsRatios
+                fromTotals = .fromTotals
+                toTotals = .toTotals
+                fromToRatios = .fromToRatios
+            End With
+        Else ''don't update fromToRatios for hollier 2
+            fromTotals = Remove(fromTotals, sPos)
+            toTotals = Remove(toTotals, sPos)
+            fromToRatios = Remove(fromToRatios, sPos)
+        End If
     End If
     
     ''repeat for subsequent steps
@@ -470,6 +534,20 @@ End Sub
 ' -------------------------------------------
 Private Function Remove(ByRef arr As Variant, ByVal pos As Integer) As Variant
     Dim newArr() As Variant
+    
+    If (UBound(arr) - LBound(arr) <= 1) Then
+        ReDim newArr(1)
+        
+        If (pos = 1) Then
+            newArr(1) = arr(2)
+        Else
+            newArr(1) = arr(1)
+        End If
+        
+        Remove = newArr
+        Exit Function
+    End If
+    
     ReDim newArr(1 To UBound(arr) - LBound(arr))
     Dim currPos As Integer
     
