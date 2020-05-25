@@ -34,7 +34,6 @@ Option Base 1
 Private nextStep As Object
 Private prevStep As Object
 Private lastStep As Object
-Private midStep As Object
 
 ' -------------------------------------------
 ' node Hollier values
@@ -68,6 +67,7 @@ Private pHollier2 As Boolean
 ' -------------------------------------------
 Private pShape As Shape
 
+Private Const INTMAX  As Long = 2147483647
 
 ' ===========================================
 ' INITIALIZE CLASS VARIABLES
@@ -87,7 +87,7 @@ End Sub
 ' -------------------------------------------
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
         Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode, _
-        Optional ByVal hollier2 As Boolean, Optional ByRef midNode As StepNode)
+        Optional ByVal hollier2 As Boolean)
     If (labels) Then
         pFromToValues() = tableValues
         pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
@@ -142,10 +142,6 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         Set lastStep = lastNode
     End If
     
-    If Not (IsMissing(midNode)) Then
-        Set midStep = midNode
-    End If
-    
     If (IsMissing(hollier2)) Then
         pHollier2 = False
     Else
@@ -177,13 +173,6 @@ Public Property Get lastNode() As StepNode
 End Property
 Public Property Let lastNode(lastNode As StepNode)
     Set lastStep = lastNode
-End Property
-
-Public Property Get midNode() As StepNode
-    Set midNode = midStep
-End Property
-Public Property Let midNode(midNode As StepNode)
-    Set midStep = midNode
 End Property
 
 Public Property Get Solution() As Variant
@@ -302,7 +291,7 @@ Private Function sumFromsAndTos(ByRef twoDimArr As Variant) As sumsAndRatios
     ReDim fromToRatios(1 To arrSize)
     For i = LBound(toTotals) To UBound(toTotals)
         If (toTotals(i) = 0) Then
-            fromToRatios(i) = 2147483647
+            fromToRatios(i) = INTMAX
         Else
             fromToRatios(i) = fromTotals(i) / toTotals(i)
         End If
@@ -323,7 +312,7 @@ End Function
 ' -------------------------------------------
 Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromTotals As Variant, _
         Optional ByRef fromToValues As Variant, Optional ByRef fromToRatios As Variant, _
-        Optional ByRef machineNbs As Variant)
+        Optional ByRef machineNbs As Variant, Optional ByRef skipList As Object)
     Dim minTo, minTo2, minToPos, minToPos2 As Long
     Dim minFrom, minFrom2, minFromPos, minFromPos2 As Long
     Dim currPos, high, highPos As Long
@@ -337,6 +326,10 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
         machineNbs = pMachineNbs
     End If
     
+    If (skipList Is Nothing) Then
+        Set skipList = CreateObject("System.Collections.ArrayList")
+    End If
+    
     ''test how many machines are left to sort
     If (UBound(machineNbs) = LBound(machineNbs)) Then
         pSolution = machineNbs(LBound(machineNbs))
@@ -346,14 +339,14 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
     currPos = 1
     
     ''hollier 1 variables
-    minTo = toTotals(LBound(toTotals, 1))
+    minTo = INTMAX
     minToPos = currPos
-    minTo2 = toTotals(LBound(toTotals, 1))
+    minTo2 = INTMAX
     minToPos2 = currPos
     
-    minFrom = fromTotals(LBound(fromTotals, 1))
+    minFrom = INTMAX
     minFromPos = currPos
-    minFrom2 = fromTotals(LBound(fromTotals, 1))
+    minFrom2 = INTMAX
     minFromPos2 = currPos
     
     ''hollier 2 variables
@@ -368,20 +361,22 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
                 highPos = currPos
             End If
         Else ''hollier 1
-            If (toTotals(i) <= minTo) Then
-                minTo2 = minTo
-                minToPos2 = minToPos
+            If (Not skipList.Contains(machineNbs(i))) Then
+                If (toTotals(i) <= minTo) Then
+                    minTo2 = minTo
+                    minToPos2 = minToPos
+                    
+                    minTo = toTotals(i)
+                    minToPos = currPos
+                End If
                 
-                minTo = toTotals(i)
-                minToPos = currPos
-            End If
-            
-            If (fromTotals(i) <= minFrom) Then
-                minFrom2 = minFrom
-                minFromPos2 = minFromPos
-                
-                minFrom = fromTotals(i)
-                minFromPos = currPos
+                If (fromTotals(i) <= minFrom) Then
+                    minFrom2 = minFrom
+                    minFromPos2 = minFromPos
+                    
+                    minFrom = fromTotals(i)
+                    minFromPos = currPos
+                End If
             End If
         End If
         currPos = currPos + 1
@@ -390,9 +385,9 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
     If (pHollier2) Then
         pSolution = machineNbs(highPos)
     Else
-        ''determine if there are ties, update variables, get machine numbers, remove columns
-        If (minTo < minFrom) Then
-            If (minTo = minTo2 And minToPos <> 1) Then
+        ''solve using hollier 1
+        If (minTo < minFrom Or (skipList.count = UBound(machineNbs))) Then
+            If (minTo = minTo2) Then
                 ''tiebreaker using from-to ratios (lowest chosen)
                 If (fromToRatios(minToPos) > fromToRatios(minToPos2)) Then
                     pSolution = machineNbs(minToPos2)
@@ -400,6 +395,10 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
                     pSolution = machineNbs(minToPos)
                 End If
             Else
+                If (skipList.count = UBound(machineNbs)) Then
+                    skipList.Remove machineNbs(minToPos)
+                End If
+                
                 pSolution = machineNbs(minToPos)
             End If
         ElseIf (minTo >= minFrom) Then
@@ -408,7 +407,7 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
             tmpMachineNbs = machineNbs
             tmpFromToValues = fromToValues
         
-            If (minFrom = minFrom2 And minFromPos <> 1 And minTo <> minFrom) Then
+            If (minFrom = minFrom2 And minTo <> minFrom) Then
                 ''tiebreaker using from-to ratios (lowest chosen)
                 If (fromToRatios(minFromPos) > fromToRatios(minFromPos2)) Then
                     minFrom = minFrom2
@@ -416,33 +415,20 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
                 End If
             Else
                 ''other tiebreakers
-                If (minTo = minFrom And minToPos <> minFromPos) Then
-                    pSolution = machineNbs(minToPos)
-                    tmpMachineNbs = Remove(machineNbs, minToPos)
-                    tmpFromToValues = RemoveRowCol(tmpFromToValues, minToPos)
-                    
-                    If (UBound(tmpMachineNbs) = 1) Then GoTo SkipFromRemovals
-                ElseIf (minToPos = minFromPos) Then
-                    Dim tempStep1 As StepNode
-                    Set tempStep1 = New StepNode
-                    
-                    If (Not (midStep Is Nothing)) Then
-                        Set tempStep1 = midStep
-                    End If
-                    
-                    Set midStep = New StepNode
-                    
-                    With midStep
-                        tmpMachineNbs = Remove(tmpMachineNbs, minFromPos)
-                        tmpFromToValues = RemoveRowCol(tmpFromToValues, minFromPos)
+                If (minTo = minFrom) Then
+                    If (minToPos <> minFromPos) Then
+                        pSolution = machineNbs(minToPos)
+                        tmpMachineNbs = Remove(machineNbs, minToPos)
+                        tmpFromToValues = RemoveRowCol(tmpFromToValues, minToPos)
                         
-                        .InitializeVariables tmpFromToValues, False, tmpMachineNbs, _
-                                hollier2:=pHollier2
-                        .Solution = machineNbs(minFromPos)
-                        .nextNode = tempStep1
-                    End With
-                    
-                    GoTo SkipLastStep
+                        If (UBound(tmpMachineNbs) = 1) Then GoTo SkipFromRemovals2
+                    Else ''minToPos = minFromPos
+                        If (Not skipList.Contains(machineNbs(minToPos))) Then
+                            skipList.Add machineNbs(minToPos)
+                        End If
+                        
+                        GoTo SkipFromRemovals
+                    End If
                 End If
             End If
             
@@ -471,7 +457,6 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
                 .nextNode = tempStep
             End With
             
-SkipLastStep:
             fromToValues = RemoveRowCol(fromToValues, minFromPos)
             machineNbs = Remove(machineNbs, minFromPos)
             sumsRatios = sumFromsAndTos(fromToValues)
@@ -481,15 +466,22 @@ SkipLastStep:
                 toTotals = .toTotals
                 fromToRatios = .fromToRatios
             End With
-            
+SkipFromRemovals:
             If (Not (minTo = minFrom And minToPos <> minFromPos)) Then
-                SolveHollier toTotals, fromTotals, fromToValues, fromToRatios, machineNbs
-                Exit Sub
+                If (minTo = minFrom And minToPos = minFromPos) Then
+                    SolveHollier toTotals, fromTotals, fromToValues, fromToRatios, _
+                            machineNbs, skipList
+                    Exit Sub
+                Else
+                    SolveHollier toTotals, fromTotals, fromToValues, fromToRatios, _
+                            machineNbs
+                    Exit Sub
+                End If
             End If
        End If
     End If
     
-SkipFromRemovals:
+SkipFromRemovals2:
     'remove table rows/columns for the next step
     Dim sPos As Integer
     sPos = 1
@@ -524,7 +516,7 @@ SkipFromRemovals:
     
     Set nextStep = New StepNode
     nextStep.InitializeVariables fromToValues, False, machineNbs, Me, _
-            pHollier2, midStep
+            pHollier2
     nextStep.SolveHollier toTotals, fromTotals, fromToValues, _
             fromToRatios, machineNbs
 End Sub
@@ -607,14 +599,6 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         End If
     
         Set tmpStep2 = tmpStep
-        Set tmpStep = tmpStep.nextNode
-    Wend
-    
-    ''add skipped nodes (from tiebreaker condition)
-    Set tmpStep = tmpStep2.midNode
-    
-    While (Not (tmpStep Is Nothing))
-        lastStepList.Insert lastStepList.count, tmpStep
         Set tmpStep = tmpStep.nextNode
     Wend
     
@@ -771,7 +755,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         table(UBound(table, 1), 1) = ""
         
         For i = 2 To UBound(table, 1) - 1
-            If (pFromToRatios(i - 1) = 2147483647) Then
+            If (pFromToRatios(i - 1) = INTMAX) Then
                 table(i, 1) = "Infinite"
             Else
                 table(i, 1) = Round(pFromToRatios(i - 1), 2)
