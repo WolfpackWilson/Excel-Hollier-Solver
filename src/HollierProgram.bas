@@ -7,7 +7,7 @@ Attribute VB_Name = "HollierProgram"
 '' Version:     1.0.0
 '' Changes----------------------------------------------
 '' Date         Programmer      Change
-'' 5/2020       John Wilson     Written
+'' 05/25/2020   TheEric960      Written
 ''=======================================================
 
 '============================================
