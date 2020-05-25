@@ -19,7 +19,7 @@ Attribute VB_Customizable = False
 '' Called by:   HollierProgram
 '' Changes----------------------------------------------
 '' Date         Programmer      Change
-'' 5/21/1999    John Wilson     Written
+'' 5/2020       John Wilson     Written
 ''=======================================================
 
 Option Base 1
@@ -220,6 +220,7 @@ Private Function RemoveRowCol(ByRef twoDimArr As Variant, ByVal posNb As Long)
     Dim newArr() As Variant
     arrSize = UBound(twoDimArr, 1) - LBound(twoDimArr, 1) + 1
     
+    ''if array is too small
     If (arrSize - 1 <= 1) Then
         ReDim newArr(1, 1)
         If (posNb = 1) Then
@@ -527,6 +528,7 @@ End Sub
 Private Function Remove(ByRef arr As Variant, ByVal pos As Integer) As Variant
     Dim newArr() As Variant
     
+    ''if array is too small
     If (UBound(arr) - LBound(arr) <= 1) Then
         ReDim newArr(1)
         
