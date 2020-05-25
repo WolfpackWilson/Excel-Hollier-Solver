@@ -20,7 +20,7 @@ End Sub
 ' -------------------------------------------
 ' begin solving for Hollier
 ' -------------------------------------------
-Sub HollierSolver()
+Sub HollierSolver(Optional ByVal notMain As Boolean)
     Dim Solver As StepNode
     Dim tableValues() As Variant
     Dim outputRange As Range
