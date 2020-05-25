@@ -808,17 +808,20 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     End If
     
     ''more formats for the comparison table
+    Dim tmpRange As Range
+    
     With tableRange
-        Range(.Cells(1, 1), .Cells(1, 2)).Select
-        Selection.Merge
-        Selection.Copy
+        Set tmpRange = Range(.Cells(1, 1), .Cells(1, 2))
+        
+        tmpRange.Merge
+        tmpRange.Copy
         For i = 2 To .Rows.count
             .Cells(i, 1).PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
                     SkipBlanks:=False, Transpose:=False
         Next
         
-        Range(.Cells(1, 1), .Cells(.Rows.count, 2)).Select
-        Selection.Copy
+        Set tmpRange = Range(.Cells(1, 1), .Cells(.Rows.count, 2))
+        tmpRange.Copy
         For i = 3 To .Columns.count
             .Cells(1, i).PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
                     SkipBlanks:=False, Transpose:=False
@@ -853,7 +856,6 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     End If
     
     Application.CutCopyMode = False
-    outRange.Offset(-(6 + nbRows), 0).Select
 End Sub
 
 ' -------------------------------------------

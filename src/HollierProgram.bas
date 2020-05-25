@@ -32,6 +32,7 @@ Sub HollierSolver()
     ''choose output range based on the form selection
     If (HollierForm.OptionButton1.value = True) Then
         Set outputRange = HollierForm.OutputCell
+        Worksheets(outputRange.Worksheet.Name).Activate
     Else
         Dim shtName As String
         Dim exists As Boolean
@@ -52,6 +53,7 @@ Sub HollierSolver()
         
         Sheets.Add(After:=Sheets(Sheets.count)).Name = shtName
         Set outputRange = Range("B2")
+        Worksheets(outputRange.Worksheet.Name).Activate
     End If
     
     ''solve using method 1
@@ -65,6 +67,8 @@ Sub HollierSolver()
         Solver2.SolveHollier
         Solver2.OutputSolution outputRange, HollierForm.CheckBox2.value
     End If
+    
+    outputRange.Cells(1, 1).Select
 End Sub
 
 ' -------------------------------------------
