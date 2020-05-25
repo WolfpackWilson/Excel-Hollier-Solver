@@ -32,7 +32,7 @@ Attribute VB_Customizable = False
 ' -------------------------------------------
 Private nextStep As Object
 Private prevStep As Object
-Private mthd2Step As Object
+Private lastStep As Object
 
 ' -------------------------------------------
 ' node Hollier values
@@ -68,6 +68,7 @@ Private pShape As Shape
 Private Sub Class_Initialize()
     ' initialize in a different sub
     pInitialized = False
+    pSolution = -1
 End Sub
 
 ' -------------------------------------------
@@ -107,8 +108,15 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
     pIn = 0
     pOut = 0
     
+    Set lastStep = New StepNode
+    
+    '' optional parameters
     If Not (IsMissing(prevNode)) Then
         Set prevStep = prevNode
+    End If
+    
+    If Not (IsMissing(lastNode)) Then
+        Set lastStep = lastNode
     End If
     
     If (IsMissing(hollier2)) Then
@@ -126,13 +134,29 @@ End Sub
 Public Property Get NextNode() As StepNode
     Set nextNode = nextStep
 End Property
+Public Property Let nextNode(nextNode As StepNode)
+    Set nextStep = nextNode
+End Property
 
 Public Property Get PrevNode() As StepNode
     Set prevNode = prevStep
 End Property
+Public Property Let prevNode(prevNode As StepNode)
+    Set prevStep = prevNode
+End Property
+
+Public Property Get lastNode() As StepNode
+    Set lastNode = lastStep
+End Property
+Public Property Let lastNode(lastNode As StepNode)
+    Set lastStep = lastNode
+End Property
 
 Public Property Get Solution() As Variant
     Solution = pSolution
+End Property
+Public Property Let Solution(value As Variant)
+    pSolution = value
 End Property
 
 Public Property Get Initialized() As Boolean
@@ -241,56 +265,194 @@ End Sub
 ' -------------------------------------------
 ' solves using a hollier method
 ' -------------------------------------------
-Public Sub SolveHollier()
-    Dim currPos, lowest, lowestPos As Long
-    currPos = 1
-    lowest = pToTotals(LBound(pToTotals, 1))
-    lowestPos = currPos
+Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromTotals As Variant, _
+        Optional ByRef fromToValues As Variant, Optional ByRef fromToRatios As Variant, _
+        Optional ByRef machineNbs As Variant)
+    Dim minTo, minTo2, minToPos, minToPos2 As Long
+    Dim minFrom, minFrom2, minFromPos, minFromPos2 As Long
+    Dim currPos, high, highPos As Long
     
-    If (pHollier2) Then
-        lowest = pFromToRatios(LBound(pFromToRatios, 1))
+    If (IsMissing(toTotals)) Then
+        toTotals = pToTotals
+        fromTotals = pFromTotals
+        fromToValues = pFromToValues
+        fromToRatios = pFromToRatios
+        machineNbs = pMachineNbs
     End If
     
-    ''find the lowest value/position
-    For i = LBound(pMachineNbs, 1) To UBound(pMachineNbs, 1)
+StartSolving:
+    
+    ''test how many machines are left to sort
+    If (UBound(machineNbs) = LBound(machineNbs)) Then
+        pSolution = machineNbs(LBound(machineNbs))
+        Exit Sub
+    End If
+    
+    currPos = 1
+    
+    ''hollier 1 variables
+    minTo = toTotals(LBound(toTotals, 1))
+    minToPos = currPos
+    minTo2 = toTotals(LBound(toTotals, 1))
+    minToPos2 = currPos
+    
+    minFrom = toTotals(LBound(fromTotals, 1))
+    minFromPos = currPos
+    minFrom2 = toTotals(LBound(fromTotals, 1))
+    minFromPos2 = currPos
+    
+    ''hollier 2 variables
+    high = fromToRatios(LBound(fromToRatios, 1))
+    highPos = currPos
+    
+    ''find the lowest values and their positions
+    For i = LBound(pMachineNbs, 1) To UBound(machineNbs, 1)
         If (pHollier2) Then
-            ''finding highest in this method
-            If (pFromToRatios(i) > lowest) Then
-                lowest = pFromToRatios(i)
-                lowestPos = currPos
+            If (fromToRatios(i) > high) Then
+                high = fromToRatios(i)
+                highPos = currPos
             End If
-        Else
-            If (pToTotals(i) < lowest) Then
-                lowest = pToTotals(i)
-                lowestPos = currPos
+        Else ''hollier 1
+            If (toTotals(i) <= minTo) Then
+                minTo2 = minTo
+                minToPos2 = minToPos
+                
+                minTo = toTotals(i)
+                minToPos = currPos
+            End If
+            
+            If (fromTotals(i) <= minFrom) Then
+                minFrom2 = minFrom
+                minFromPos2 = minFromPos
+                
+                minFrom = fromTotals(i)
+                minFromPos = currPos
             End If
         End If
         currPos = currPos + 1
     Next
-    pSolution = pMachineNbs(lowestPos)
     
-    If (UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1) > 0) Then
-        ''get machine numbers for the next step
-        Dim newMachineNbs As Variant
-        ReDim newMachineNbs(1 To UBound(pMachineNbs, 1) - LBound(pMachineNbs, 1))
-        currPos = 1
-        
-        For i = LBound(pMachineNbs, 1) To UBound(pMachineNbs, 1)
-            If Not ((pMachineNbs(i) = pSolution)) Then
-                newMachineNbs(currPos) = pMachineNbs(i)
-                currPos = currPos + 1
+    If (pHollier2) Then
+        pSolution = machineNbs(highPos)
+    Else
+        ''determine if there are ties, update variables, get machine numbers, remove columns
+        If (minTo < minFrom) Then
+            If (minTo = minTo2 And minToPos <> 1) Then
+                ''tiebreaker using from-to ratios (lowest chosen)
+                If (fromToRatios(minToPos) > fromToRatios(minToPos2)) Then
+                    pSolution = machineNbs(minToPos2)
+                Else
+                    pSolution = machineNbs(minToPos)
+                End If
+            Else
+                pSolution = machineNbs(minToPos)
             End If
-        Next
+        ElseIf (minTo >= minFrom) Then
+            Dim tmpMachineNbs() As Variant
+            Dim tmpFromToValues() As Variant
+            tmpMachineNbs = machineNbs
+            tmpFromToValues = fromToValues
         
-        Dim newValues As Variant
-        newValues = RemoveRowCol(pFromToValues, lowestPos)
-        
-        ''repeat for subsequent steps
-        Set nextStep = New StepNode
-        nextStep.InitializeVariables newValues, False, newMachineNbs, Me, pHollier2
-        nextStep.SolveHollier
+            If (minFrom = minFrom2 And minFromPos <> 1 And minTo <> minFrom) Then
+                ''tiebreaker using from-to ratios (lowest chosen)
+                If (fromToRatios(minFromPos) > fromToRatios(minFromPos2)) Then
+                    minFrom = minFrom2
+                    minFromPos = minFromPos2
+                End If
+            Else
+                ''TODO: add minToPos = minFromPos tiebreaker
+                If (minTo = minFrom) Then
+                    pSolution = machineNbs(minToPos)
+                    tmpMachineNbs = Remove(machineNbs, minToPos)
+                    tmpFromToValues = RemoveRowCol(tmpFromToValues, minToPos)
+                    
+                End If
+            End If
+            
+            ''add the "from" machine and continue to search for "to" selection
+            Dim tempStep As StepNode
+            Set tempStep = New StepNode
+            
+            If (Not (lastStep Is Nothing)) Then
+                Set tempStep = lastStep
+            End If
+            
+            Set lastStep = New StepNode
+            
+            With lastStep
+                If (minTo = minFrom And minFromPos > minToPos) Then
+                    tmpMachineNbs = Remove(tmpMachineNbs, minFromPos - 1)
+                    tmpFromToValues = RemoveRowCol(tmpFromToValues, minFromPos - 1)
+                Else
+                    tmpMachineNbs = Remove(tmpMachineNbs, minFromPos)
+                    tmpFromToValues = RemoveRowCol(tmpFromToValues, minFromPos)
+                End If
+                
+                .InitializeVariables tmpFromToValues, False, tmpMachineNbs, _
+                        hollier2:=pHollier2
+                .Solution = machineNbs(minFromPos)
+                .nextNode = tempStep
+            End With
+            
+            toTotals = Remove(toTotals, minFromPos)
+            fromTotals = Remove(fromTotals, minFromPos)
+            fromToValues = RemoveRowCol(fromToValues, minFromPos)
+            fromToRatios = Remove(fromToRatios, minFromPos)
+            machineNbs = Remove(machineNbs, minFromPos)
+            
+            If (minTo <> minFrom) Then
+                SolveHollier toTotals, fromTotals, fromToValues, fromToRatios, machineNbs
+                Exit Sub
+            End If
+       End If
     End If
+    
+    'remove table rows/columns for the next step
+    Dim sPos As Integer
+    sPos = 1
+    
+    For i = 1 To UBound(machineNbs)
+        If (machineNbs(i) = pSolution) Then
+            sPos = i
+        End If
+    Next
+    
+    If (UBound(toTotals) <> LBound(toTotals)) Then
+        toTotals = Remove(toTotals, sPos)
+        fromTotals = Remove(fromTotals, sPos)
+        fromToValues = RemoveRowCol(fromToValues, sPos)
+        fromToRatios = Remove(fromToRatios, sPos)
+        machineNbs = Remove(machineNbs, sPos)
+    End If
+    
+    ''repeat for subsequent steps
+    
+    Set nextStep = New StepNode
+    nextStep.InitializeVariables fromToValues, False, machineNbs, Me, _
+            pHollier2
+    nextStep.SolveHollier toTotals, fromTotals, fromToValues, _
+            fromToRatios, machineNbs
 End Sub
+
+' -------------------------------------------
+' remove a value from an array based on its position
+' -------------------------------------------
+Private Function Remove(ByRef arr As Variant, ByVal pos As Integer) As Variant
+    Dim newArr() As Variant
+    ReDim newArr(1 To UBound(arr) - LBound(arr))
+    Dim currPos As Integer
+    
+    currPos = 1
+    
+    For i = 1 To UBound(arr)
+        If (i <> pos) Then
+            newArr(currPos) = arr(i)
+            currPos = currPos + 1
+        End If
+    Next
+    
+    Remove = newArr
+End Function
 
 ' -------------------------------------------
 ' create the solution and output it into Excel
@@ -301,9 +463,11 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     
     Dim count, currR, currC, inSeq, backtrack, totalMoves As Long
     Dim posDict, machineDict, stepNodeDict As Object
-    Dim tmpStep As StepNode
+    Dim tmpStep, tmpStep2 As StepNode
+    Dim lastStepList, lastStepList2 As Object
     Dim outRange As Range
     
+    Set lastStepList = CreateObject("System.Collections.ArrayList")
     Set posDict = CreateObject("Scripting.Dictionary")          ''machine - position
     Set machineDict = CreateObject("Scripting.Dictionary")      ''position - machine
     Set stepNodeDict = CreateObject("Scripting.Dictionary")     ''machine - StepNode
@@ -311,12 +475,51 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     Set tmpStep = Me
     count = 1
     
-    ''fill dictionaries
+    ''stitch together results
     While (Not (tmpStep Is Nothing))
-        posDict.Add tmpStep.Solution, count
-        machineDict.Add count, tmpStep.Solution
-        stepNodeDict.Add tmpStep.Solution, tmpStep
-        count = count + 1
+        ''start adding the tail end of the sequence
+        If (Not (tmpStep.lastNode Is Nothing)) Then
+            Set lastStepList2 = CreateObject("System.Collections.ArrayList")
+            Set tmpStep2 = tmpStep.lastNode
+            
+            While (Not (tmpStep2 Is Nothing))
+                If (tmpStep2.Solution <> -1) Then
+                    lastStepList2.Insert lastStepList2.count, tmpStep2
+                End If
+                
+                Set tmpStep2 = tmpStep2.nextNode
+            Wend
+            
+            lastStepList2.Reverse
+            
+            For Each lStep In lastStepList2
+                lastStepList.Insert lastStepList.count, lStep
+            Next
+        End If
+    
+        Set tmpStep2 = tmpStep
+        Set tmpStep = tmpStep.nextNode
+    Wend
+    
+    lastStepList.Reverse
+    
+    For Each lStep In lastStepList
+         tmpStep2.nextNode = lStep
+         lStep.prevNode = tmpStep2  ''repair node links
+         Set tmpStep2 = tmpStep2.nextNode
+    Next
+    
+    ''fill dictionaries
+    Set tmpStep = Me
+    
+    While (Not (tmpStep Is Nothing))
+        If (tmpStep.Solution <> -1) Then
+            posDict.Add tmpStep.Solution, count
+            machineDict.Add count, tmpStep.Solution
+            stepNodeDict.Add tmpStep.Solution, tmpStep
+            count = count + 1
+        End If
+        
         Set tmpStep = tmpStep.nextNode
     Wend
     
