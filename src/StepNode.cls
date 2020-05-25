@@ -33,6 +33,7 @@ Attribute VB_Customizable = False
 Private nextStep As Object
 Private prevStep As Object
 Private lastStep As Object
+Private midStep As Object
 
 ' -------------------------------------------
 ' node Hollier values
@@ -76,7 +77,7 @@ End Sub
 ' -------------------------------------------
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
         Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode, _
-        Optional ByVal hollier2 As Boolean)
+        Optional ByVal hollier2 As Boolean, Optional ByRef midNode As StepNode)
     If (labels) Then
         pFromToValues() = tableValues
         pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
@@ -119,6 +120,10 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         Set lastStep = lastNode
     End If
     
+    If Not (IsMissing(midNode)) Then
+        Set midStep = midNode
+    End If
+    
     If (IsMissing(hollier2)) Then
         pHollier2 = False
     Else
@@ -150,6 +155,13 @@ Public Property Get lastNode() As StepNode
 End Property
 Public Property Let lastNode(lastNode As StepNode)
     Set lastStep = lastNode
+End Property
+
+Public Property Get midNode() As StepNode
+    Set midNode = midStep
+End Property
+Public Property Let midNode(midNode As StepNode)
+    Set midStep = midNode
 End Property
 
 Public Property Get Solution() As Variant
@@ -280,8 +292,6 @@ Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromT
         machineNbs = pMachineNbs
     End If
     
-StartSolving:
-    
     ''test how many machines are left to sort
     If (UBound(machineNbs) = LBound(machineNbs)) Then
         pSolution = machineNbs(LBound(machineNbs))
@@ -360,12 +370,32 @@ StartSolving:
                     minFromPos = minFromPos2
                 End If
             Else
-                ''TODO: add minToPos = minFromPos tiebreaker
-                If (minTo = minFrom) Then
+                ''other tiebreakers
+                If (minTo = minFrom And minToPos <> minFromPos) Then
                     pSolution = machineNbs(minToPos)
                     tmpMachineNbs = Remove(machineNbs, minToPos)
                     tmpFromToValues = RemoveRowCol(tmpFromToValues, minToPos)
+                ElseIf (minToPos = minFromPos) Then
+                    Dim tempStep1 As StepNode
+                    Set tempStep1 = New StepNode
                     
+                    If (Not (midStep Is Nothing)) Then
+                        Set tempStep1 = midStep
+                    End If
+                    
+                    Set midStep = New StepNode
+                    
+                    With midStep
+                        tmpMachineNbs = Remove(tmpMachineNbs, minFromPos)
+                        tmpFromToValues = RemoveRowCol(tmpFromToValues, minFromPos)
+                        
+                        .InitializeVariables tmpFromToValues, False, tmpMachineNbs, _
+                                hollier2:=pHollier2
+                        .Solution = machineNbs(minFromPos)
+                        .nextNode = tempStep1
+                    End With
+                    
+                    GoTo SkipLastStep
                 End If
             End If
             
@@ -394,13 +424,14 @@ StartSolving:
                 .nextNode = tempStep
             End With
             
+SkipLastStep:
             toTotals = Remove(toTotals, minFromPos)
             fromTotals = Remove(fromTotals, minFromPos)
             fromToValues = RemoveRowCol(fromToValues, minFromPos)
             fromToRatios = Remove(fromToRatios, minFromPos)
             machineNbs = Remove(machineNbs, minFromPos)
             
-            If (minTo <> minFrom) Then
+            If (Not (minTo = minFrom And minToPos <> minFromPos)) Then
                 SolveHollier toTotals, fromTotals, fromToValues, fromToRatios, machineNbs
                 Exit Sub
             End If
@@ -429,7 +460,7 @@ StartSolving:
     
     Set nextStep = New StepNode
     nextStep.InitializeVariables fromToValues, False, machineNbs, Me, _
-            pHollier2
+            pHollier2, midStep
     nextStep.SolveHollier toTotals, fromTotals, fromToValues, _
             fromToRatios, machineNbs
 End Sub
@@ -475,7 +506,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     Set tmpStep = Me
     count = 1
     
-    ''stitch together results
+    ''start stitching together results
     While (Not (tmpStep Is Nothing))
         ''start adding the tail end of the sequence
         If (Not (tmpStep.lastNode Is Nothing)) Then
@@ -501,8 +532,17 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         Set tmpStep = tmpStep.nextNode
     Wend
     
+    ''add skipped nodes (from tiebreaker condition)
+    Set tmpStep = tmpStep2.midNode
+    
+    While (Not (tmpStep Is Nothing))
+        lastStepList.Insert lastStepList.count, tmpStep
+        Set tmpStep = tmpStep.nextNode
+    Wend
+    
     lastStepList.Reverse
     
+    ''finish stitching
     For Each lStep In lastStepList
          tmpStep2.nextNode = lStep
          lStep.prevNode = tmpStep2  ''repair node links
@@ -731,6 +771,7 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     Else
         Set outRange = outRange.Offset(5, 0)
     End If
+    ''----------------------
     
     ''create the machine flow diagram
     If (createFlowDia) Then
