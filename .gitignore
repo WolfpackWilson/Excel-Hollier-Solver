@@ -1,0 +1,13 @@
+# Excel
+Sheet*.cls
+ThisWorkbook.cls
+*~$*
+*.xls*
+
+# VBA extract settings
+*.ini
+*.bin
+
+# Folders
+releases/
+
