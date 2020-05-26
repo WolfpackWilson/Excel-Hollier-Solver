@@ -1,3 +1,5 @@
+---
+---
 
 # Excel Hollier Solver
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/TheEric960/Excel-Hollier-Solver)
@@ -8,7 +10,7 @@ The Hollier Solver tool is an Excel plugin that takes a from-to table and solves
 
 
 ## Preview
-![Preview](./images/example-output.png)
+![Preview]({{site.baseurl}}/assets/img/example-output.png)
 
 |Contents|
 |---|

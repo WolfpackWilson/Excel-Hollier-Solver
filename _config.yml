@@ -1,0 +1,3 @@
+theme: jekyll-theme-slate
+title: Excel Hollier Solver
+description: The Hollier Solver tool is an Excel plugin that takes a from-to table and solves it using the Hollier methods.
