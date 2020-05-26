@@ -6,7 +6,7 @@
 ![GitHub All Releases](https://img.shields.io/github/downloads/TheEric960/Excel-Hollier-Solver/total)
 ![GitHub](https://img.shields.io/github/license/TheEric960/Excel-Hollier-Solver)
 
-The Hollier Solver tool is an Excel plugin that takes a from-to table and solves it using the Hollier methods.
+The Hollier Solver tool is an Excel add-in that takes a from-to table and solves it using the Hollier methods.
 
 
 ## Preview
