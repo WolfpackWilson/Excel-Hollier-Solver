@@ -2,9 +2,9 @@
 ---
 
 # Excel Hollier Solver
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/TheEric960/Excel-Hollier-Solver)
-![GitHub All Releases](https://img.shields.io/github/downloads/TheEric960/Excel-Hollier-Solver/total)
-![GitHub](https://img.shields.io/github/license/TheEric960/Excel-Hollier-Solver)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/TheEric960/Excel-Hollier-Solver)](https://github.com/TheEric960/Excel-Hollier-Solver/releases/latest)
+[![GitHub All Releases](https://img.shields.io/github/downloads/TheEric960/Excel-Hollier-Solver/total)](https://github.com/TheEric960/Excel-Hollier-Solver/releases/latest)
+[![GitHub](https://img.shields.io/github/license/TheEric960/Excel-Hollier-Solver)](https://github.com/TheEric960/Excel-Hollier-Solver/blob/master/LICENSE)
 
 The Hollier Solver tool is an Excel add-in that takes a from-to table and solves it using the Hollier methods.
 
