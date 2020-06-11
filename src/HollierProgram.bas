@@ -4,10 +4,11 @@ Attribute VB_Name = "HollierProgram"
 '' Program:     HollierProgram
 '' Desc:        Solves for the machine order using
 ''              Hollier's methods and plots the results.
-'' Version:     1.0.0
+'' Version:     1.1.0
 '' Changes----------------------------------------------
 '' Date         Programmer      Change
 '' 05/25/2020   TheEric960      Written
+'' 06/11/2020   TheEric960      1.1.0
 ''=======================================================
 
 '============================================

@@ -86,7 +86,7 @@ End Sub
 ' extract table information to initalize variables
 ' -------------------------------------------
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
-        Optional ByRef MachineNbs As Variant, Optional ByRef prevNode As StepNode, _
+        Optional ByRef machineNbs As Variant, Optional ByRef prevNode As StepNode, _
         Optional ByVal hollier2 As Boolean)
     If (labels) Then
         pFromToValues() = tableValues
@@ -103,14 +103,14 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         pFromToValues() = tableValues
         pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1) + 1
         
-        If IsMissing(MachineNbs) Then
+        If IsMissing(machineNbs) Then
             ReDim pMachineNbs(1 To pTableSize)
             ''set current machine numbers
             For i = 1 To pTableSize
                 pMachineNbs(i) = i
             Next
         Else
-            pMachineNbs = MachineNbs
+            pMachineNbs = machineNbs
         End If
     End If
     
@@ -154,14 +154,14 @@ End Sub
 ' GETTERS AND SETTERS
 ' ===========================================
 
-Public Property Get NextNode() As StepNode
+Public Property Get nextNode() As StepNode
     Set nextNode = nextStep
 End Property
 Public Property Let nextNode(nextNode As StepNode)
     Set nextStep = nextNode
 End Property
 
-Public Property Get PrevNode() As StepNode
+Public Property Get prevNode() As StepNode
     Set prevNode = prevStep
 End Property
 Public Property Let prevNode(prevNode As StepNode)

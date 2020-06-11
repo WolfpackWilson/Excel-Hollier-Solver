@@ -9,7 +9,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} HollierForm
    TypeInfoVer     =   62
 End
 Attribute VB_Name = "HollierForm"
-Attribute VB_Base = "0{7257B53A-2B65-417B-9C46-32037726137E}{E5D88FAC-2DAA-42FD-A293-1E6F12814AEE}"
+Attribute VB_Base = "0{93B6090F-14BB-4820-9D95-9D919A4BE8C5}{0EB454C2-29A6-4747-9518-0AA4E5A582C5}"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
