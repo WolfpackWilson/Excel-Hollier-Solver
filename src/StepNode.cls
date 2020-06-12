@@ -20,6 +20,7 @@ Attribute VB_Customizable = False
 '' Changes----------------------------------------------
 '' Date         Programmer      Change
 '' 05/25/2020   TheEric960      Written
+'' 06/11/2020   TheEric960      v1.1.0
 ''=======================================================
 
 Option Base 1
@@ -88,6 +89,8 @@ End Sub
 Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boolean, _
         Optional ByRef machineNbs As Variant, Optional ByRef prevNode As StepNode, _
         Optional ByVal hollier2 As Boolean)
+    On Error GoTo EH
+        
     If (labels) Then
         pFromToValues() = tableValues
         pTableSize = UBound(pFromToValues, 1) - LBound(pFromToValues, 1)
@@ -156,6 +159,11 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
     Else
         pHollier2 = hollier2
     End If
+    Exit Sub
+    
+EH:
+    RaiseError Err.Number, Err.Source, "HollierProgram.InitializeVariables", _
+            Err.Description, Erl
 End Sub
 
 
@@ -323,6 +331,8 @@ End Function
 Public Sub SolveHollier(Optional ByRef toTotals As Variant, Optional ByRef fromTotals As Variant, _
         Optional ByRef fromToValues As Variant, Optional ByRef fromToRatios As Variant, _
         Optional ByRef machineNbs As Variant, Optional ByRef skipList As Object)
+    On Error GoTo EH
+    
     Dim minTo, minTo2, minToPos, minToPos2 As Long
     Dim minFrom, minFrom2, minFromPos, minFromPos2 As Long
     Dim currPos, high, highPos As Long
@@ -529,6 +539,10 @@ SkipFromRemovals2:
             pHollier2
     nextStep.SolveHollier toTotals, fromTotals, fromToValues, _
             fromToRatios, machineNbs
+    Exit Sub
+    
+EH:
+    RaiseError Err.Number, Err.Source, "HollierProgram.SolveHollier", Err.Description, Erl
 End Sub
 
 ' -------------------------------------------
@@ -570,6 +584,8 @@ End Function
 ' create the solution and output it into Excel
 ' -------------------------------------------
 Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boolean)
+    On Error GoTo EH
+    
     Dim nodeArr() As PointerNode
     ReDim nodeArr(1 To (pTableSize * pTableSize)) ''table size, ins/outs, not diagonals
     
@@ -867,6 +883,10 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
     End If
     
     Application.CutCopyMode = False
+    Exit Sub
+    
+EH:
+    RaiseError Err.Number, Err.Source, "HollierProgram.OutputSolution", Err.Description, Erl
 End Sub
 
 ' -------------------------------------------
