@@ -114,6 +114,15 @@ Public Sub InitializeVariables(ByRef tableValues As Variant, ByVal labels As Boo
         End If
     End If
     
+    ''make sure all diagonal values are 0
+    For i = LBound(pFromToValues, 1) To pTableSize
+        For j = LBound(pFromToValues, 2) To pTableSize
+            If (i = j) Then
+                pFromToValues(i, j) = 0
+            End If
+        Next
+    Next
+    
     ''set sums and ratios
     Dim sumsRatios As sumsAndRatios
     sumsRatios = sumFromsAndTos(pFromToValues)
@@ -722,6 +731,8 @@ Public Sub OutputSolution(ByRef outputRange As Range, ByVal createFlowDia As Boo
         For j = 1 To nbRows
             If (i = 1 And j = 1) Then
                 table(i, j) = "From/To"
+            ElseIf (i = j And i <> nbRows) Then
+                table(i, j) = 0
             ElseIf (i = 1) Then
                 If (j <> nbRows) Then
                     table(i, j) = pMachineNbs(j - 1)
