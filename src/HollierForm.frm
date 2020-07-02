@@ -68,8 +68,47 @@ Private Sub CommandButton1_Click()
             If (OptionButton1.value = True And getRange(RefEdit2.Text, OutputCell) _
                     And Not (OutputCell Is Nothing)) Then
                 Set OutputCell = OutputCell.Cells(1, 1)
+                
+                ''check for existing data in relative output range
+                Dim ouputRange As Range
+                Dim outputCellValues() As Variant
+                Dim flagYes, flagNo As Boolean
+                
+                Set outputRange = OutputCell
+                Set outputRange = outputRange.Resize(arr1Length + 1, arr1Length + 1)
+                
+                outputCellValues = Application.Transpose(outputRange)
+                flagYes = False
+                flagNo = False
+                
+                For i = LBound(outputCellValues, 1) To UBound(outputCellValues, 1)
+                    For j = LBound(outputCellValues, 1) To UBound(outputCellValues, 1)
+                        If (outputCellValues(i, j) <> "") Then
+                            Dim response As Variant
+                            response = MsgBox("Data was found in the output range. Continue?", _
+                                    vbYesNo, "Warning")
+                            
+                            If (response = vbYes) Then
+                                flagYes = True
+                                Exit For
+                            Else
+                                flagNo = True
+                                Exit For
+                            End If
+                        End If
+                    Next
+                    
+                    If (flagYes Or flagNo) Then
+                        Exit For
+                    End If
+                Next
+                
                 Me.Hide
-                HollierProgram.HollierSolver
+                
+                If (Not flagNo) Then
+                    HollierProgram.HollierSolver
+                End If
+                
                 Unload Me
                 
             ''use a new sheet
