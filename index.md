@@ -1,4 +1,5 @@
 ---
+
 ---
 
 # Excel Hollier Solver
@@ -9,9 +10,14 @@
 
 The Hollier Solver tool is an Excel add-in that takes a from-to table and solves it using the Hollier methods.
 
-
 ## Preview
-![Preview]({{site.baseurl}}/assets/img/example-output.png)
+![Live Preview](./images/example.gif)
+
+<details>
+  <summary>Example Output</summary>
+  <img alt-text="Example Output" src="./images/example-output.png">
+</details>
+<br>
 
 |Contents|
 |---|
@@ -20,14 +26,18 @@ The Hollier Solver tool is an Excel add-in that takes a from-to table and solves
 |&nbsp;&nbsp;&nbsp;1.2 [Hollier Method 1 Algorithm](#hollier-method-1-algorithm)|
 |2. [Installation and Use](#installation-and-use)|
 |&nbsp;&nbsp;&nbsp;2.1 [How to Use the Solver](#how-to-use-the-solver)|
-|&nbsp;&nbsp;&nbsp;2.2 [How to Add the Solver to the Toolbar](#how-to-add-the-solver-to-the-toolbar)|
-|&nbsp;&nbsp;&nbsp;2.3 [Terms of Service](#terms-of-service)|
+|&nbsp;&nbsp;&nbsp;2.2 [How to Add the Solver as an Add-in](#how-to-add-the-solver-as-an-add-in)|
+|&nbsp;&nbsp;&nbsp;2.3 [How to Add the Solver to the Toolbar](#how-to-add-the-solver-to-the-toolbar)|
+|&nbsp;&nbsp;&nbsp;2.4 [Terms of Service](#terms-of-service)|
 
 
 # Introduction
 
 ## What are Hollier Methods?
-Hollier methods are algorithms used to order machines to minimize the backtracking of parts. In the context of manufacturing, it is implemented after separating components of an assembly into part families, splitting them into machine groups using rank order clustering, and finally generating from-to tables of each group.
+Hollier methods are algorithms used to order machines to minimize the backtracking of parts. 
+In the context of manufacturing, it is implemented after separating components of an assembly 
+into part families, splitting them into machine groups using rank order clustering, and finally 
+generating from-to tables of each group.
 
 ## Hollier Method 1 Algorithm
 1. Develop a from-to chart based on part routes. 
@@ -40,9 +50,11 @@ Hollier methods are algorithms used to order machines to minimize the backtracki
 
 
 # Installation and Use
-The quickest way to run the program is to use the macro-enabled template file, `Hollier_Macro.xltm`. To keep this as a personal template that shows in the `New` tab in Excel, add the file to `C:\Users\<username>\Documents\Custom Office Templates`.
+The quickest way to run the program is to use the macro-enabled template file, 
+`Hollier_Macro.xltm`. To keep this as a personal template that shows in the `New` 
+tab in Excel, add the file to `C:\Users\<username>\Documents\Custom Office Templates`.
 
-**Report An Issue:** if you discover any issues, please report them at [the issue tracker](https://github.com/TheEric960/Excel-Hollier-Solver/issues).
+**Report An Issue:** If you discover any issues, please report them at [the issue tracker](https://github.com/TheEric960/Excel-Hollier-Solver/issues).
 
 ## How to Use the Solver
 Use of the Hollier solver is simple:
@@ -54,10 +66,27 @@ Use of the Hollier solver is simple:
     - *New Worksheet*: The program will output to a new worksheet.
     - *Holler Method 2*: Select this option if to solve using Hollier Method 2 as well.
     - *Flow Diagram*: Select this option to generate a flow diagram for each method.
-1. Press OK to run the program.
+1. Press `OK` to run the program.
+
+### Warnings
+ - Setups with a singular machine are not accounted for.
+ - All nonzeros in the diagonal are not accounted for.
+
+## How to Add the Solver as an Add-in
+This option allows the program to be selected in the ribbon by navigating to `Add-ins > Hollier Solver`.
+
+To add the solver as an Add-in:
+1. Copy the `Hollier_Solver.xlam` file to `C:\Users\<USERNAME>\AppData\Roaming\Microsoft\AddIns`.
+1. On the ribbon, navigate to `File > Options`. An option window should pop up.
+1. Select `Add-ins` and on the bottom, select `Go...`
+1. Check the `Hollier-Solver` box and choose `OK`.
+
+> To uninstall, delete `Hollier_Solver.xlam` at `C:\Users\<USERNAME>\AppData\Roaming\Microsoft\AddIns` 
+and restart Excel.
 
 ## How to Add the Solver to the Toolbar
-Follow the steps in [this tutorial](https://www.excel-easy.com/vba/examples/add-a-macro-to-the-toolbar.html) beginning at **Step 8**.
+Follow the steps in [this tutorial](https://www.excel-easy.com/vba/examples/add-a-macro-to-the-toolbar.html) 
+beginning at **Step 8**.
 
 ## Terms of Service
 As defined in the [BSD 3-Clause](https://github.com/TheEric960/Excel-Hollier-Solver/blob/master/LICENSE):
