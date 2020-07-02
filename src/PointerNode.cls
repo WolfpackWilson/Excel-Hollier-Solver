@@ -67,11 +67,11 @@ End Sub
 ' GETTERS AND SETTERS
 ' ===========================================
 
-Public Property Get PrevNode() As StepNode
+Public Property Get prevNode() As StepNode
     Set prevNode = pPrevNode
 End Property
 
-Public Property Get NextNode() As StepNode
+Public Property Get nextNode() As StepNode
     Set nextNode = pNextNode
 End Property
 

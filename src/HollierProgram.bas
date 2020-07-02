@@ -4,10 +4,11 @@ Attribute VB_Name = "HollierProgram"
 '' Program:     HollierProgram
 '' Desc:        Solves for the machine order using
 ''              Hollier's methods and plots the results.
-'' Version:     1.0.0
+'' Version:     1.1.0
 '' Changes----------------------------------------------
 '' Date         Programmer      Change
 '' 05/25/2020   TheEric960      Written
+'' 06/11/2020   TheEric960      1.1.0
 ''=======================================================
 
 '============================================
@@ -21,6 +22,8 @@ End Sub
 ' begin solving for Hollier
 ' -------------------------------------------
 Sub HollierSolver(Optional ByVal notMain As Boolean)
+    On Error GoTo EH
+
     Dim Solver As StepNode
     Dim tableValues() As Variant
     Dim outputRange As Range
@@ -69,6 +72,10 @@ Sub HollierSolver(Optional ByVal notMain As Boolean)
     End If
     
     outputRange.Cells(1, 1).Select
+    Exit Sub
+    
+EH:
+    RaiseError Err.Number, Err.Source, "HollierProgram", Err.Description, Erl
 End Sub
 
 ' -------------------------------------------
@@ -83,3 +90,15 @@ Function WorksheetExists(shtName As String, Optional wb As Workbook) As Boolean
     On Error GoTo 0
     WorksheetExists = Not sht Is Nothing
 End Function
+
+' -------------------------------------------
+' displays caught errors
+' -------------------------------------------
+Sub RaiseError(errNb As Variant, errSrc As Variant, errLoc As Variant, _
+        errDesc As Variant, errLine As Variant)
+    If (Not errLine) Then
+        errLine = "N/A"
+    End If
+    
+    Err.Raise errNb, errSrc, errDesc & vbCrLf & errLoc
+End Sub

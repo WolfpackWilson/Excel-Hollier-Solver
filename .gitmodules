@@ -1,0 +1,3 @@
+[submodule "VBA-Scripting-Library"]
+	path = VBA-Scripting-Library
+	url = https://github.com/TheEric960/VBA-Scripting-Library.git

@@ -1,6 +1,5 @@
 # Excel
 Sheet*.cls
-ThisWorkbook.cls
 *~$*
 *.xls*
 
@@ -11,3 +10,7 @@ ThisWorkbook.cls
 # Folders
 releases/
 
+# Library files
+src/ArrayList.cls
+src/Dictionary.cls
+src/KeyValue.cls

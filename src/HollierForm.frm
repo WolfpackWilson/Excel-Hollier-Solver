@@ -9,7 +9,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} HollierForm
    TypeInfoVer     =   62
 End
 Attribute VB_Name = "HollierForm"
-Attribute VB_Base = "0{7257B53A-2B65-417B-9C46-32037726137E}{E5D88FAC-2DAA-42FD-A293-1E6F12814AEE}"
+Attribute VB_Base = "0{93B6090F-14BB-4820-9D95-9D919A4BE8C5}{0EB454C2-29A6-4747-9518-0AA4E5A582C5}"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -64,12 +64,64 @@ Private Sub CommandButton1_Click()
         arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
         
         If (arr1Length = arr2Length) Then
+            ''check for 0s in the diagonals
+            For i = LBound(arrRange) To UBound(arrRange)
+                If (CheckBox1.Value And i = 1) Then
+                    ''continue
+                ElseIf (arrRange(i, i) <> 0) Then
+                    MsgBox "Warning: Nonzeros found in the diagonal will not be accounted for.", _
+                            Title:="Warning"
+                            
+                    Exit For
+                End If
+            Next
+        
             ''check if output range option is selected, is present, and is correct
             If (OptionButton1.value = True And getRange(RefEdit2.Text, OutputCell) _
                     And Not (OutputCell Is Nothing)) Then
                 Set OutputCell = OutputCell.Cells(1, 1)
+                
+                ''check for existing data in relative output range
+                Dim ouputRange As Range
+                Dim outputCellValues() As Variant
+                Dim flagYes, flagNo As Boolean
+                
+                Set outputRange = OutputCell
+                Set outputRange = outputRange.Resize(arr1Length + 1, arr1Length + 1)
+                
+                outputCellValues = Application.Transpose(outputRange)
+                flagYes = False
+                flagNo = False
+                
+                For i = LBound(outputCellValues, 1) To UBound(outputCellValues, 1)
+                    For j = LBound(outputCellValues, 1) To UBound(outputCellValues, 1)
+                        If (outputCellValues(i, j) <> "") Then
+                            Dim response As Variant
+                            response = MsgBox("Data was found in the output range. Continue?", _
+                                    vbYesNo, "Warning")
+                            
+                            If (response = vbYes) Then
+                                flagYes = True
+                                Exit For
+                            Else
+                                flagNo = True
+                                Exit For
+                            End If
+                        End If
+                    Next
+                    
+                    If (flagYes Or flagNo) Then
+                        Exit For
+                    End If
+                Next
+                
+                ''begin program if all checks pass
                 Me.Hide
-                HollierProgram.HollierSolver
+                
+                If (Not flagNo) Then
+                    HollierProgram.HollierSolver
+                End If
+                
                 Unload Me
                 
             ''use a new sheet
