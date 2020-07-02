@@ -10,3 +10,7 @@ Sheet*.cls
 # Folders
 releases/
 
+# Library files
+src/ArrayList.cls
+src/Dictionary.cls
+src/KeyValue.cls
