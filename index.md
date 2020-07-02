@@ -11,11 +11,11 @@
 The Hollier Solver tool is an Excel add-in that takes a from-to table and solves it using the Hollier methods.
 
 ## Preview
-![Live Preview](./images/example.gif)
+<img alt-text="Live Preview" src="{{site.baseurl}}/assets/img/example.gif">
 
 <details>
   <summary>Example Output</summary>
-  <img alt-text="Example Output" src="./images/example-output.png">
+  <img alt-text="Example Output" src="{{site.baseurl}}/assets/img/example-output.png">
 </details>
 <br>
 
