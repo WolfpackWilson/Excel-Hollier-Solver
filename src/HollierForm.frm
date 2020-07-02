@@ -64,6 +64,18 @@ Private Sub CommandButton1_Click()
         arr2Length = UBound(arrRange, 2) - LBound(arrRange, 2)
         
         If (arr1Length = arr2Length) Then
+            ''check for 0s in the diagonals
+            For i = LBound(arrRange) To UBound(arrRange)
+                If (CheckBox1.Value And i = 1) Then
+                    ''continue
+                ElseIf (arrRange(i, i) <> 0) Then
+                    MsgBox "Warning: Nonzeros found in the diagonal will not be accounted for.", _
+                            Title:="Warning"
+                            
+                    Exit For
+                End If
+            Next
+        
             ''check if output range option is selected, is present, and is correct
             If (OptionButton1.value = True And getRange(RefEdit2.Text, OutputCell) _
                     And Not (OutputCell Is Nothing)) Then
@@ -103,6 +115,7 @@ Private Sub CommandButton1_Click()
                     End If
                 Next
                 
+                ''begin program if all checks pass
                 Me.Hide
                 
                 If (Not flagNo) Then
