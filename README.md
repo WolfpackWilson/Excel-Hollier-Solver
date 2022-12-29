@@ -1,9 +1,9 @@
 
 # Excel Hollier Solver
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/TheEric960/Excel-Hollier-Solver)](https://github.com/TheEric960/Excel-Hollier-Solver/releases/latest)
-[![GitHub All Releases](https://img.shields.io/github/downloads/TheEric960/Excel-Hollier-Solver/total)](https://github.com/TheEric960/Excel-Hollier-Solver/releases/latest)
-[![GitHub issues](https://img.shields.io/github/issues/TheEric960/Excel-Hollier-Solver)](https://github.com/TheEric960/Excel-Hollier-Solver/issues)
-[![GitHub](https://img.shields.io/github/license/TheEric960/Excel-Hollier-Solver)](https://github.com/TheEric960/Excel-Hollier-Solver/blob/master/LICENSE)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/WolfpackWilson/Excel-Hollier-Solver)](https://github.com/WolfpackWilson/Excel-Hollier-Solver/releases/latest)
+[![GitHub All Releases](https://img.shields.io/github/downloads/WolfpackWilson/Excel-Hollier-Solver/total)](https://github.com/WolfpackWilson/Excel-Hollier-Solver/releases/latest)
+[![GitHub issues](https://img.shields.io/github/issues/WolfpackWilson/Excel-Hollier-Solver)](https://github.com/WolfpackWilson/Excel-Hollier-Solver/issues)
+[![GitHub](https://img.shields.io/github/license/WolfpackWilson/Excel-Hollier-Solver)](https://github.com/WolfpackWilson/Excel-Hollier-Solver/blob/master/LICENSE)
 
 The Hollier Solver tool is an Excel add-in that takes a from-to table and solves it using the Hollier methods.
 
@@ -51,7 +51,7 @@ The quickest way to run the program is to use the macro-enabled template file,
 `Hollier_Macro.xltm`. To keep this as a personal template that shows in the `New` 
 tab in Excel, add the file to `C:\Users\<username>\Documents\Custom Office Templates`.
 
-**Report An Issue:** If you discover any issues, please report them at [the issue tracker](https://github.com/TheEric960/Excel-Hollier-Solver/issues).
+**Report An Issue:** If you discover any issues, please report them at [the issue tracker](https://github.com/WolfpackWilson/Excel-Hollier-Solver/issues).
 
 ## How to Use the Solver
 Use of the Hollier solver is simple:
@@ -86,7 +86,7 @@ Follow the steps in [this tutorial](https://www.excel-easy.com/vba/examples/add-
 beginning at **Step 8**.
 
 ## Terms of Service
-As defined in the [BSD 3-Clause](https://github.com/TheEric960/Excel-Hollier-Solver/blob/master/LICENSE):
+As defined in the [BSD 3-Clause](https://github.com/WolfpackWilson/Excel-Hollier-Solver/blob/master/LICENSE):
 
 >THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
